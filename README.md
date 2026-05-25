@@ -1,7 +1,3 @@
-Certainly! Here is the documentation for your "Caelestia Miku" desktop setup in English, including definitions for your Operating System and the tools used.
-
----
-
 # 🌸 Caelestia Miku Ubuntu Ricing
 
 Welcome to my personal desktop configuration! This theme is inspired by Hatsune Miku’s aesthetic, focusing on a dreamy, clean, and highly functional workspace.
