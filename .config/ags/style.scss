@@ -1,0 +1,18 @@
+/* --- Di dalam file styling AGS-mu (contoh ~/.config/ags/style.scss) --- */
+
+// CONTOH SELECTOR (Kamu HARUS cari selector yang benar untuk tombol Miku-mu)
+// Misalnya jika class container kalendernya ".calendar-slider"
+.calendar-slider button {
+    // Style tombol yang sudah ada...
+
+    // Targetkan gambar atau icon di dalam tombol
+    image, .icon { 
+        // --- TAMBAHKAN TRIK FRAME CONTOUR (Cyan: #39C5BB) ---
+        // Penjelasan: Kami menggunakan 4 shadow offset tajam untuk membuat bingkai sempurna
+        filter: drop-shadow(1px 0 0 #39C5BB) 
+                drop-shadow(-1px 0 0 #39C5BB) 
+                drop-shadow(0 1px 0 #39C5BB) 
+                drop-shadow(0 -1px 0 #39C5BB); 
+                // Jika ingin bingkai sedikit lebih tebal, tambahkan blur (misal drop-shadow(0 0 1.5px #39C5BB))
+    }
+}

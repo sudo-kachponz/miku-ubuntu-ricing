@@ -1,0 +1,193 @@
+/* Wajib: Membuat kanvas dasar menjadi transparan */
+window {
+    background-color: transparent;
+}
+
+/* --- GAYA BAR CAELESTIA (TEAL KACA, NO ABU-ABU) --- */
+.bar-container {
+    background: rgba(11, 74, 77, 0.7); /* Teal/Cyan Gelap transparan */
+    border-radius: 12px;
+    margin: 10px 15px 0px 15px;
+    padding: 5px 15px;
+    border: 2px solid rgba(134, 206, 203, 0.5); /* Bingkai Cyan */
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 14px;
+}
+
+/* Workspaces */
+.workspaces button {
+    background: transparent;
+    color: #bec8d1;
+    padding: 2px 8px;
+    margin: 0 4px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.workspaces button.focused {
+    background: #86cecb;
+    color: #0b4a4d; /* Teks gelap biar kebaca jelas */
+    font-weight: bold;
+    box-shadow: 0 0 5px rgba(134, 206, 203, 0.8);
+}
+
+.workspaces button:hover {
+    background: #e12885;
+    color: #ffffff;
+}
+
+/* Modul Kiri & Jam */
+.left-modules { margin-left: 5px; }
+
+.launcher-btn { background: transparent; color: #e12885; font-size: 16px; padding: 0 10px; border-radius: 8px; transition: all 0.2s ease; }
+.launcher-btn:hover { background: rgba(225, 40, 133, 0.3); }
+
+.clock-btn { background: transparent; border-radius: 8px; padding: 0 10px; }
+.clock-btn:hover { background: rgba(134, 206, 203, 0.2); }
+.clock { color: #86cecb; font-weight: bold; }
+
+/* Modul Kanan */
+.right-modules { margin-right: 10px; }
+.brightness-box { color: #bec8d1; font-weight: bold; }
+.volume-box { color: #86cecb; font-weight: bold; }
+.battery-box { color: #86cecb; font-weight: bold; }
+.battery-box.low-battery { color: #e12885; }
+
+/* Tombol Power */
+.power-menu { color: #e12885; background: transparent; padding: 0 10px; }
+.power-menu:hover { background: rgba(225, 40, 133, 0.3); border-radius: 8px; }
+
+/* --- GAYA POPUP POWER MENU (TEAL KACA) --- */
+.power-popup-box {
+    background: rgba(11, 74, 77, 0.85); /* Hilangkan abu-abu */
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 5px;
+    border: 2px solid rgba(134, 206, 203, 0.5);
+    min-width: 150px;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+}
+
+.power-btn { background: transparent; color: #bec8d1; padding: 8px 15px; margin: 4px 0; border-radius: 8px; font-weight: bold; }
+.power-btn:hover { background: rgba(134, 206, 203, 0.2); }
+.power-btn.shutdown:hover { background: #e12885; color: white; }
+.power-btn.reboot:hover { background: #137a7f; color: white; }
+.power-btn.logout:hover { background: #86cecb; color: #0b4a4d; }
+
+/* --- GAYA DOCK BAWAH (TEAL KACA) --- */
+.dock-container {
+    background: rgba(11, 74, 77, 0.7); /* Hilangkan abu-abu */
+    border-radius: 20px;
+    padding: 8px 12px;
+    border: 2px solid rgba(134, 206, 203, 0.5);
+}
+
+.dock-item { background: transparent; border-radius: 12px; padding: 8px; margin: 0 4px; transition: all 0.3s ease; }
+.dock-item:hover { background: rgba(225, 40, 133, 0.4); box-shadow: 0 4px 10px rgba(225, 40, 133, 0.5); }
+.dock-item:active { background: #86cecb; }
+
+/* =======================================================
+   --- GAYA KALENDER POPUP (FULL TRANSPARAN CYAN KACA) --- 
+   ======================================================= */
+/* --- GAYA POPUP KALENDER LANDSCAPE (HIGH CONTRAST) --- */
+/* --- GAYA POPUP KALENDER LANDSCAPE (HIGH CONTRAST) --- */
+.calendar-popup-box {
+    background: rgba(35, 39, 42, 0.85);
+    border: 4px solid #137a7f; /* Bingkai Cyan Gelap */
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.7);
+}
+
+/* Kotak Gambar Kiri */
+.calendar-image {
+    border-radius: 8px;
+    border: 2px solid #2b3034; 
+}
+
+/* Bar Tombol di Sisi Bawah Gambar */
+.slider-button-bar {
+    margin-top: 8px;
+}
+
+/* Styling Tombol Slider Kalender */
+.slider-btn-minimal {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #39C5BB; /* Warna Cyan Terang untuk Ikon Panah */
+    font-size: 18px;
+    padding: 6px 12px;
+}
+
+.slider-btn-minimal:hover {
+    color: #f1ff00; /* Warna Kuning saat di-hover */
+}
+
+/* Widget Kalender Kanan (Dibuat Lebih Renggang) */
+.calendar-widget {
+    color: #bec8d1; 
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 14px;
+    background: transparent;
+    padding-left: 10px; /* Memberi jarak dari blok gambar */
+}
+
+/* Header Bulan dan Tahun */
+.calendar-widget header {
+    color: #e12885; 
+    font-weight: bold;
+    font-size: 16px;
+    padding-bottom: 12px;
+}
+
+/* Penamaan Hari (Sen, Sel, dst) */
+.calendar-widget day-name {
+    color: #86cecb; 
+    font-weight: bold;
+    padding: 6px; /* Ditambah biar tidak dempet atas-bawah */
+}
+
+/* Grid Tanggal (SOLUSI BIAR TIDAK DEMPET) */
+.calendar-widget day {
+    padding: 8px 10px; /* Ditambah padding internalnya agar angka punya ruang bernapas */
+}
+
+/* Hari Ini / Tanggal Terpilih */
+.calendar-widget:selected {
+    background-color: #e12885; 
+    color: #ffffff;
+    border-radius: 6px;
+    font-weight: bold;
+    border: 1px solid #ff73b9;
+    border-bottom: 3px solid #8c0050; 
+}
+
+/* --- Frame Custom untuk Slider Gambar Miku --- */
+/* Catatan: Kamu mungkin perlu mengubah '.slider-image' dengan nama class 
+   yang benar dari file layout JS/TS kalendermu */
+.slider-image {
+    /* Menggunakan gambar frame sebagai background di belakang gambar utama */
+    background-image: url("file:///home/firania/.config/ags/assets/mikuframecalendar.png");
+    background-size: 100% 100%; /* Memaksa frame memenuhi kotak */
+    background-position: center;
+    background-color: transparent;
+    
+    /* Padding ini mengatur jarak antara bingkai luar (frame) dengan gambar Miku di tengahnya. 
+       Naikkan angkanya jika gambar Miku menutupi framenya */
+    padding: 8px; 
+    
+    /* Opsional: Membuat sudutnya sedikit melengkung jika frame-mu melengkung */
+    border-radius: 8px; 
+}
+
+/* Jika gambar Miku-nya dirender sebagai elemen terpisah di dalam tombol slider */
+.slider-button {
+    background-image: url("file:///home/firania/.config/ags/assets/mikuframecalendar.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+}
