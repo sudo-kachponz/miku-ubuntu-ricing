@@ -1,0 +1,31 @@
+/* --- TEMA MIKU CAELESTIA UNTUK GTK --- */
+
+/* 1. Warna Highlight Utama (Cyan Miku) saat teks/item dipilih */
+@define-color theme_selected_bg_color #39C5BB;
+@define-color theme_selected_fg_color #ffffff;
+
+/* 2. Warna Aksen (Pastel Pink) */
+@define-color accent_color #FF8EB3;
+@define-color accent_bg_color #FF8EB3;
+@define-color accent_fg_color #ffffff;
+
+/* --- CUSTOM RULE UNTUK ELEMEN SPESIFIK --- */
+
+/* Paksa semua item yang di-klik/dipilih menjadi Cyan */
+*:selected {
+    background-color: #39C5BB;
+    color: #ffffff;
+}
+
+/* Paksa tombol Toggle/Switch menjadi Pink saat ON (seperti di menu WiFi/Bluetooth) */
+switch:checked {
+    background-color: #FF8EB3;
+    border-color: #FF8EB3;
+}
+
+/* Beri aksen glow Cyan pada tombol yang sedang difokuskan */
+button:focus {
+    outline-color: #39C5BB;
+    outline-style: solid;
+    outline-width: 2px;
+}

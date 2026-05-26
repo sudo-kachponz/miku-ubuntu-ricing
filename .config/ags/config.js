@@ -66,26 +66,74 @@ const SysTray = () => Box({
     }))),
 });
 
-const Brightness = () => Box({
-    className: "brightness-box",
-    children: [
-        Label({ label: "󰃠 " }),
-        Label({ label: Variable("", { poll: [2000, 'sh -c "brightnessctl -m | cut -d, -f4"'] }).bind() }),
-    ],
-});
+// Widget Brightness dengan Tombol Kontrol
+const Brightness = () => {
+    // Variable untuk membaca angka persentase secara real-time
+    const brightVar = Variable(0, {
+        poll: [500, 'sh -c "brightnessctl -m | cut -d, -f4 | tr -d %"', out => Number(out)]
+    });
 
+    return Box({
+        className: "brightness-box",
+        spacing: 4,
+        children: [
+            // Tombol Kurangi Brightness (-5%)
+            Button({
+                className: "bright-btn",
+                child: Label(""), // Ikon panah kiri
+                onClicked: () => Utils.execAsync("brightnessctl set 5%-").catch(print),
+            }),
+            
+            // Indikator Ikon & Angka
+            Label({ 
+                label: brightVar.bind().as(v => `󰃠 ${v}%`),
+                className: "bright-label"
+            }),
+
+            // Tombol Tambah Brightness (+5%)
+            Button({
+                className: "bright-btn",
+                child: Label(""), // Ikon panah kanan
+                onClicked: () => Utils.execAsync("brightnessctl set +5%").catch(print),
+            }),
+        ],
+    });
+};
+
+// Widget Volume dengan Slider Bar
 const Volume = () => Box({
     className: "volume-box",
+    spacing: 8,
     children: [
-        Label().hook(Audio.speaker, self => {
-            const vol = Math.floor((Audio.speaker.volume || 0) * 100);
-            const isMuted = Audio.speaker.is_muted;
-            let icon = isMuted ? "󰖁" : (vol < 30 ? "󰕿" : (vol < 70 ? "󰖀" : "󰕾"));
-            self.label = `${icon} ${vol}%`;
+        // Ikon Volume (Bisa diklik untuk Mute/Unmute)
+        Button({
+            className: "volume-icon-btn",
+            onClicked: () => Audio.speaker.is_muted = !Audio.speaker.is_muted,
+            child: Label().hook(Audio.speaker, self => {
+                const vol = Math.floor((Audio.speaker.volume || 0) * 100);
+                const isMuted = Audio.speaker.is_muted;
+                self.label = isMuted ? "󰖁" : (vol < 30 ? "󰕿" : (vol < 70 ? "󰖀" : "󰕾"));
+            }),
         }),
+        
+        // Bar Slider Interaktif
+        Widget.Slider({
+            className: "volume-bar",
+            hexpand: true, // Biar barnya menyesuaikan tempat kosong
+            drawValue: false, // Menyembunyikan angka default GTK di atas bar
+            onChange: ({ value }) => Audio.speaker.volume = value,
+            setup: self => self.hook(Audio.speaker, () => {
+                self.value = Audio.speaker.volume || 0;
+            }),
+        }),
+
+        // Angka Persentase di ujung kanan (Opsional, agar tetap informatif)
+        Label({
+            className: "volume-percent",
+            label: Audio.speaker.bind("volume").as(v => `${Math.floor(v * 100)}%`),
+        })
     ],
 });
-
 const BatteryWidget = () => Box({
     className: "battery-box",
     visible: Battery.bind("available"),
@@ -106,11 +154,30 @@ const PowerMenuBtn = () => Button({
     onClicked: () => App.toggleWindow("power-popup-window"),
 });
 
+const Network = await Service.import("network");
+
+const Wifi = () => Box({
+    className: "wifi-box",
+    children: [
+        Button({
+            className: "wifi-btn",
+            // Klik untuk membuka pengaturan jaringan (opsional, sesuaikan dengan command-mu)
+            onClicked: () => execAsync("nm-connection-editor"), 
+            child: Label().hook(Network, self => {
+                const { wifi } = Network;
+                // Mengubah ikon berdasarkan status
+                const icon = wifi.internet === "connected" ? "󰤨" : "󰤭";
+                self.label = `${icon} ${wifi.ssid || "Disconnected"}`;
+            }),
+        }),
+    ],
+});
+
 const RightModules = () => Box({
     className: "right-modules",
     spacing: 15,
     halign: "end",
-    children: [SysTray(), Brightness(), Volume(), BatteryWidget(), PowerMenuBtn()],
+    children: [SysTray(), Brightness(), Volume(), BatteryWidget(), PowerMenuBtn(), Wifi()],
 });
 
 // === DEKLARASI WINDOWS ===

@@ -1,0 +1,20 @@
+/* --- TEMA MIKU CAELESTIA UNTUK GTK4 (FILES / NAUTILUS) --- */
+
+/* Warna Aksen Utama (Tombol aktif, Toggle) menjadi Pastel Pink */
+@define-color accent_color #FF8EB3;
+@define-color accent_bg_color #FF8EB3;
+@define-color accent_fg_color #ffffff;
+
+/* Sorotan Sidebar dan File yang dipilih menjadi Cyan Miku */
+.navigation-sidebar row:selected,
+flowboxchild:selected,
+treeview:selected {
+    background-color: #39C5BB;
+    color: #ffffff;
+}
+
+/* Ubah border tombol menjadi senada */
+button:checked {
+    background-color: #FF8EB3;
+    color: #ffffff;
+}

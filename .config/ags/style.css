@@ -191,3 +191,102 @@ window {
     border: none;
     box-shadow: none;
 }
+
+/* --- BRIGHTNESS CONTROL WIDGET --- */
+.brightness-box {
+    /* Memberikan jarak agar tombol tidak terlalu dempet */
+    padding: 0 4px;
+}
+
+.bright-btn {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #39C5BB; /* Warna Cyan Miku */
+    font-size: 14px;
+    padding: 0 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease-in-out;
+}
+
+.bright-btn:hover {
+    color: #f1ff00; /* Berubah Kuning saat kursor diarahkan */
+    background: rgba(57, 197, 187, 0.2); /* Efek highlight transparan */
+}
+
+.bright-label {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+/* --- VOLUME CONTROL WIDGET --- */
+.volume-box {
+    padding: 0 10px;
+}
+
+.volume-icon-btn {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #FF8EB3; /* Warna Magenta untuk Ikon */
+    font-size: 16px;
+    padding: 0;
+}
+
+.volume-percent {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 13px;
+    margin-left: 5px;
+}
+
+/* --- STYLING UNTUK SLIDER BAR --- */
+/* Lebar bar keseluruhan */
+scale.volume-bar {
+    min-width: 100px; 
+}
+
+/* Jalur belakang (Dark Grey) */
+scale.volume-bar trough {
+    min-height: 8px;
+    background-color: #2D2D2D; /* Dark Grey */
+    border-radius: 8px;
+}
+
+/* Bar yang terisi (Magenta) */
+scale.volume-bar highlight {
+    background-color: #FF8EB3; /* Magenta */
+    border-radius: 8px;
+}
+
+/* Tombol bulat yang digeser (Slider Knob) */
+scale.volume-bar slider {
+    min-width: 12px;
+    min-height: 12px;
+    background-color: #FF8EB3; 
+    border-radius: 50%;
+    /* Uncomment baris di bawah ini jika kamu mau slidernya berbentuk bar murni tanpa pentolan bulat: */
+    /* opacity: 0; */ 
+}
+
+/* --- WIFI WIDGET --- */
+.wifi-box {
+    padding: 0 10px;
+}
+
+.wifi-btn {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #FF8EB3; /* Magenta */
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0 5px;
+    transition: all 0.2s ease-in-out;
+}
+
+.wifi-btn:hover {
+    color: #ffffff; /* Putih saat di-hover */
+    background: rgba(255, 0, 255, 0.2); /* Highlight Magenta transparan */
+    border-radius: 4px;
+}
