@@ -3,59 +3,83 @@ window {
     background-color: transparent;
 }
 
-/* --- GAYA BAR CAELESTIA (TEAL KACA, NO ABU-ABU) --- */
+/* Global: buang outline/border/shadow HITAM default GTK di semua kontrol.
+   Border yang diinginkan (biru muda transparan) diset per-elemen di bawah. */
+button, scale, scale trough, scale slider, entry {
+    border: none;
+    box-shadow: none;
+    outline: none;
+}
+
+/* ============================================================
+   GAYA BAR — CAELESTIA × ARCH (GLASS TEAL + GRADIENT MIKU)
+   ============================================================ */
 .bar-container {
-    background: rgba(11, 74, 77, 0.7); /* Teal/Cyan Gelap transparan */
-    border-radius: 12px;
-    margin: 10px 15px 0px 15px;
-    padding: 5px 15px;
-    border: 2px solid rgba(134, 206, 203, 0.5); /* Bingkai Cyan */
+    background: linear-gradient(to bottom, rgba(11, 74, 77, 0.82), rgba(9, 58, 61, 0.66));
+    border-radius: 16px;
+    margin: 8px 14px 0px 14px;
+    padding: 4px 10px;
+    border: 1px solid rgba(134, 206, 203, 0.35);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.40),
+                inset 0 1px 0 rgba(255, 255, 255, 0.07);
     font-family: "JetBrainsMono Nerd Font", monospace;
     font-size: 14px;
 }
 
-/* Workspaces */
+/* Workspaces — inaktif = dot lembut, aktif = pill gradient Miku (pink -> teal -> cyan) */
 .workspaces button {
-    background: transparent;
-    color: #bec8d1;
-    padding: 2px 8px;
-    margin: 0 4px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    background: rgba(190, 200, 209, 0.10);
+    color: #9fb0bb;
+    padding: 2px 10px;
+    margin: 0 3px;
+    border-radius: 10px;
+    border: 1px solid rgba(134, 206, 203, 0.30); /* biru muda transparan, bukan hitam */
+    transition: all 0.30s cubic-bezier(0.05, 0.7, 0.1, 1);
 }
 
 .workspaces button.focused {
-    background: #86cecb;
-    color: #0b4a4d; /* Teks gelap biar kebaca jelas */
+    background: linear-gradient(to right, #e12885, #137a7f, #86cecb);
+    color: #ffffff;
     font-weight: bold;
-    box-shadow: 0 0 5px rgba(134, 206, 203, 0.8);
+    padding: 2px 20px;                 /* melar jadi pill panjang */
+    border: 1px solid rgba(134, 206, 203, 0.45);
+    box-shadow: 0 0 10px rgba(225, 40, 133, 0.55);
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.35);
 }
 
 .workspaces button:hover {
-    background: #e12885;
+    background: rgba(225, 40, 133, 0.35);
     color: #ffffff;
+    box-shadow: 0 0 8px rgba(225, 40, 133, 0.35);
 }
 
-/* Modul Kiri & Jam */
-.left-modules { margin-left: 5px; }
+/* Modul Kiri & Launcher (avatar Miku) */
+.left-modules { margin-left: 4px; }
 
-.launcher-btn { background: transparent; color: #e12885; font-size: 16px; padding: 0 10px; border-radius: 8px; transition: all 0.2s ease; }
-.launcher-btn:hover { background: rgba(225, 40, 133, 0.3); }
+.launcher-btn { background: transparent; color: #e12885; font-size: 16px; padding: 0 8px; border-radius: 10px; transition: all 0.2s ease; }
+.launcher-btn:hover { background: rgba(225, 40, 133, 0.30); box-shadow: 0 0 8px rgba(225, 40, 133, 0.4); }
 
-.clock-btn { background: transparent; border-radius: 8px; padding: 0 10px; }
-.clock-btn:hover { background: rgba(134, 206, 203, 0.2); }
-.clock { color: #86cecb; font-weight: bold; }
+/* Jam — kapsul kaca + glow cyan lembut */
+.clock-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border-radius: 12px;
+    padding: 2px 14px;
+    border: 1px solid rgba(134, 206, 203, 0.20);
+    transition: all 0.2s ease;
+}
+.clock-btn:hover { background: rgba(134, 206, 203, 0.18); box-shadow: 0 0 10px rgba(134, 206, 203, 0.30); }
+.clock { color: #86cecb; font-weight: bold; text-shadow: 0 0 6px rgba(134, 206, 203, 0.45); }
 
 /* Modul Kanan */
-.right-modules { margin-right: 10px; }
+.right-modules { margin-right: 4px; }
 .brightness-box { color: #bec8d1; font-weight: bold; }
 .volume-box { color: #86cecb; font-weight: bold; }
 .battery-box { color: #86cecb; font-weight: bold; }
-.battery-box.low-battery { color: #e12885; }
+.battery-box.low-battery { color: #e12885; text-shadow: 0 0 6px rgba(225, 40, 133, 0.5); }
 
 /* Tombol Power */
-.power-menu { color: #e12885; background: transparent; padding: 0 10px; }
-.power-menu:hover { background: rgba(225, 40, 133, 0.3); border-radius: 8px; }
+.power-menu { color: #e12885; background: transparent; padding: 0 10px; border-radius: 10px; transition: all 0.2s ease; }
+.power-menu:hover { background: rgba(225, 40, 133, 0.30); box-shadow: 0 0 10px rgba(225, 40, 133, 0.45); }
 
 /* --- GAYA POPUP POWER MENU (TEAL KACA) --- */
 .power-popup-box {
@@ -82,7 +106,18 @@ window {
     border: 2px solid rgba(134, 206, 203, 0.5);
 }
 
-.dock-item { background: transparent; border-radius: 12px; padding: 8px; margin: 0 4px; transition: all 0.3s ease; }
+/* Dock scroll — scrollbar tersembunyi, scroll tetap jalan */
+.dock-scroll { min-width: 48px; }
+.dock-scroll scrollbar { opacity: 0; }
+
+/* Zona hover tak terlihat di tepi KIRI (pemicu auto-hide navbar) */
+.dock-hotspot-v { min-width: 6px; background: transparent; }
+/* Jarak navbar dari tepi kiri saat muncul */
+.dock-container { margin-left: 12px; }
+/* Pemisah antara app pinned dan window kebuka */
+.dock-divider { min-height: 2px; background: rgba(134, 206, 203, 0.35); margin: 8px 6px; border-radius: 2px; }
+
+.dock-item { background: transparent; border: 1px solid rgba(134, 206, 203, 0.25); border-radius: 12px; padding: 8px; margin: 4px 0; transition: all 0.3s ease; }
 .dock-item:hover { background: rgba(225, 40, 133, 0.4); box-shadow: 0 4px 10px rgba(225, 40, 133, 0.5); }
 .dock-item:active { background: #86cecb; }
 
@@ -105,52 +140,50 @@ window {
     border: 2px solid #2b3034; 
 }
 
-/* Bar Tombol di Sisi Bawah Gambar */
-.slider-button-bar {
-    margin-top: 8px;
-}
-
-/* Styling Tombol Slider Kalender */
-.slider-btn-minimal {
+/* Tombol gambar kalender (klik = ganti gambar) */
+.calendar-image-btn {
     background: transparent;
     border: none;
     box-shadow: none;
-    color: #39C5BB; /* Warna Cyan Terang untuk Ikon Panah */
-    font-size: 18px;
-    padding: 6px 12px;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+.calendar-image-btn:hover {
+    opacity: 0.85;
 }
 
-.slider-btn-minimal:hover {
-    color: #f1ff00; /* Warna Kuning saat di-hover */
-}
-
-/* Widget Kalender Kanan (Dibuat Lebih Renggang) */
+/* Widget Kalender Kanan (dikecilkan biar seimbang dgn gambar) */
 .calendar-widget {
-    color: #bec8d1; 
+    color: #bec8d1;
     font-family: "JetBrainsMono Nerd Font", monospace;
-    font-size: 14px;
-    background: transparent;
-    padding-left: 10px; /* Memberi jarak dari blok gambar */
+    font-size: 13px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(134, 206, 203, 0.20);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-right: 4px;
 }
 
 /* Header Bulan dan Tahun */
 .calendar-widget header {
-    color: #e12885; 
+    color: #e12885;
     font-weight: bold;
     font-size: 16px;
-    padding-bottom: 12px;
+    padding-bottom: 10px;
+    text-shadow: 0 0 6px rgba(225, 40, 133, 0.35);
 }
 
 /* Penamaan Hari (Sen, Sel, dst) */
 .calendar-widget day-name {
-    color: #86cecb; 
+    color: #86cecb;
     font-weight: bold;
-    padding: 6px; /* Ditambah biar tidak dempet atas-bawah */
+    padding: 5px;
 }
 
-/* Grid Tanggal (SOLUSI BIAR TIDAK DEMPET) */
+/* Grid Tanggal */
 .calendar-widget day {
-    padding: 8px 10px; /* Ditambah padding internalnya agar angka punya ruang bernapas */
+    font-size: 13px;
+    padding: 7px 9px;
 }
 
 /* Hari Ini / Tanggal Terpilih */
@@ -246,27 +279,28 @@ scale.volume-bar {
     min-width: 100px; 
 }
 
-/* Jalur belakang (Dark Grey) */
+/* Jalur belakang (kaca gelap transparan, selaras tema) */
 scale.volume-bar trough {
     min-height: 8px;
-    background-color: #2D2D2D; /* Dark Grey */
+    background-color: rgba(255, 255, 255, 0.12);
     border-radius: 8px;
 }
 
-/* Bar yang terisi (Magenta) */
+/* Bar yang terisi (gradient pink -> magenta muda) */
 scale.volume-bar highlight {
-    background-color: #FF8EB3; /* Magenta */
+    background: linear-gradient(to right, #e12885, #FF8EB3);
     border-radius: 8px;
 }
 
-/* Tombol bulat yang digeser (Slider Knob) */
+/* Tombol bulat yang digeser (Slider Knob) berpendar */
 scale.volume-bar slider {
     min-width: 12px;
     min-height: 12px;
-    background-color: #FF8EB3; 
+    background-color: #ffffff;
     border-radius: 50%;
+    box-shadow: 0 0 6px rgba(255, 142, 179, 0.75);
     /* Uncomment baris di bawah ini jika kamu mau slidernya berbentuk bar murni tanpa pentolan bulat: */
-    /* opacity: 0; */ 
+    /* opacity: 0; */
 }
 
 /* --- WIFI WIDGET --- */
@@ -290,3 +324,137 @@ scale.volume-bar slider {
     background: rgba(255, 0, 255, 0.2); /* Highlight Magenta transparan */
     border-radius: 4px;
 }
+
+/* --- WIFI PICKER POPUP --- */
+.wifi-popup-box {
+    background: rgba(11, 74, 77, 0.92);
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 5px;
+    border: 2px solid rgba(255, 142, 179, 0.55);
+    min-width: 260px;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+}
+.wifi-popup-header {
+    color: #FF8EB3;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 2px 4px 6px 4px;
+}
+.wifi-rescan-btn {
+    background: transparent;
+    color: #86cecb;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+.wifi-rescan-btn:hover { background: rgba(134, 206, 203, 0.2); color: #fff; }
+.wifi-status {
+    color: #bec8d1;
+    font-size: 11px;
+    padding: 2px 6px 6px 6px;
+}
+.wifi-list-scroll { min-height: 200px; min-width: 240px; }
+.wifi-list { min-width: 240px; }
+.wifi-row {
+    background: transparent;
+    color: #e6eef0;
+    padding: 7px 8px;
+    margin: 2px 0;
+    border-radius: 8px;
+}
+.wifi-row:hover { background: rgba(255, 142, 179, 0.18); }
+.wifi-row.active { background: rgba(134, 206, 203, 0.18); color: #86cecb; font-weight: bold; }
+.wifi-sig { color: #86cecb; margin-right: 8px; }
+.wifi-ssid { font-size: 13px; }
+.wifi-lock { color: #bec8d1; margin: 0 6px; font-size: 11px; }
+.wifi-check { color: #86cecb; }
+.wifi-pw-box { padding: 4px 6px 8px 6px; }
+.wifi-pw-entry {
+    background: rgba(0, 0, 0, 0.35);
+    color: #fff;
+    border: 1px solid rgba(255, 142, 179, 0.5);
+    border-radius: 6px;
+    padding: 5px 8px;
+    margin-right: 6px;
+}
+.wifi-pw-entry:focus { border-color: #FF8EB3; }
+.wifi-connect-btn {
+    background: #e12885;
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+.wifi-connect-btn:hover { background: #FF8EB3; }
+.wifi-empty { color: #8a9ba0; padding: 10px; font-size: 12px; }
+
+/* ============================================================
+   TAMAGOTCHI — MindPalace digital pet (persis desain HTML)
+   ============================================================ */
+.pet-shell {
+    /* rainbow OPAQUE (nggak tembus pandang) + border putih kayak Tamagotchi asli */
+    background-color: #ffffff;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
+                      url('file:///home/firania/.config/ags/assets/pet/shell-gradient.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border: 3px solid rgba(255, 255, 255, 0.92);         /* border putih */
+    border-radius: 46% 46% 43% 43% / 52% 52% 42% 42%;   /* BENTUK TELUR */
+    padding: 20px 36px 30px 36px;                         /* egg besar, banyak ruang di sekeliling layar */
+    min-width: 210px;
+    box-shadow: 0 16px 30px -14px rgba(60, 40, 80, 0.42),
+                inset 0 2px 10px rgba(255, 255, 255, 0.55),
+                inset 0 -10px 16px rgba(150, 140, 170, 0.10);
+}
+.pet-brand {
+    color: #7c7690;
+    font-family: "Comic Neue", "Comic Sans MS", sans-serif;
+    font-weight: bold;
+    font-size: 16px;
+    margin: 4px 0 9px 0;
+}
+.pet-bezel {
+    border-radius: 16px;
+    padding: 7px;
+    background: rgba(255, 255, 255, 0.78);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.14);
+}
+.pet-screen {
+    border-radius: 10px;
+    padding: 8px 10px;
+    min-width: 112px;
+    min-height: 112px;                     /* KOTAK kecil & TETAP; Stack homogeneous jaga pet=monitor */
+    background-color: #AFC7A6;             /* hijau sage LCD */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+    background-size: 4px 4px;              /* grid pixel LCD */
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: opacity 0.25s ease;
+}
+.pet-screen.dim { opacity: 0.5; }        /* mode hemat daya */
+.pet-hud   { font-size: 9px; font-weight: bold; color: #1E1B4B; font-family: "JetBrainsMono Nerd Font", monospace; margin-bottom: 2px; }
+.pet-poop  { font-size: 12px; }
+.pet-bunny { margin: 2px 0; }
+.pet-nag   { color: #2E3B33; font-size: 9px; font-weight: bold; font-family: "JetBrainsMono Nerd Font", monospace; margin-top: 2px; }
+.pet-marquee { color: #2E3B33; font-size: 9px; font-family: "JetBrainsMono Nerd Font", monospace; margin-top: 3px; }
+
+/* Layar monitor pixel (htop) */
+.pet-mon-title { color: #1E1B4B; font-weight: bold; font-size: 9px; font-family: "JetBrainsMono Nerd Font", monospace; margin-bottom: 5px; }
+.pet-mon-row   { color: #243b28; font-weight: bold; font-size: 9px; font-family: "JetBrainsMono Nerd Font", monospace; margin: 1px 0; }
+
+/* Tombol — bulat sempurna, lebih kecil (kiri/kanan kecil, tengah pink) */
+.pet-buttons { margin-top: 11px; }
+.pet-btn {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    color: #8a7fa0;
+    font-size: 8px;
+    padding: 0;
+    min-width: 0;
+    box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.18), 0 2px 3px rgba(0, 0, 0, 0.2);
+    transition: all 0.15s ease;
+}
+.pet-btn-side { min-width: 13px; min-height: 13px; margin: 0 8px; }
+.pet-btn-mid  { min-width: 17px; min-height: 17px; margin: 0 7px; background: #f4b8d0; color: #7a3350; font-size: 9px; }
+.pet-btn:hover { box-shadow: inset 0 -2px 3px rgba(0, 0, 0, 0.18), 0 0 8px rgba(255, 255, 255, 0.8); }

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mametchi System Monitor</title>
+<style>
+/* =======================================================================
+   TAMAGOTCHI SYSTEM MONITOR — widget desktop ala RAMmap
+   Satu file, tanpa dependency. Cangkang: CSS 3D. Isi layar: canvas piksel.
+   ======================================================================= */
+:root{
+  --shell-1:#FFFFFF; --shell-2:#F2F4F8; --shell-3:#DDE3EC; --shell-4:#C6CEDB;
+  --ink:#5A6373; --btn:#F5A9BC; --btn-d:#D97E96;
+  --lcd-glass:rgba(255,255,255,.45);
+  --ui:#2b3340;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:transparent;                 /* transparan: enak ditumpuk di desktop */
+  display:grid;place-items:center;
+  font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top,0) 12px env(safe-area-inset-bottom,0);
+}
+body.solid{background:#0f1117}          /* toggle latar untuk screenshot */
+
+/* ----------------------------------------------------------------- stage */
+.stage{position:relative;width:min(92vw,340px);aspect-ratio:340/420;filter:drop-shadow(0 26px 34px rgba(40,50,70,.34))}
+
+/* ------------------------------------------------------------ cangkang telur */
+.egg{
+  position:absolute;inset:0;
+  border-radius:50% 50% 47% 47%/54% 54% 46% 46%;
+  background:
+    radial-gradient(90% 60% at 26% 12%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.45) 34%, rgba(255,255,255,0) 62%),
+    conic-gradient(from 210deg at 50% 46%,
+      #CFF3E6 0deg, #CDE6FA 60deg, #D9D8F7 120deg, #F5D3E8 190deg, #FBE0CC 250deg, #FAF0C9 300deg, #CFF3E6 360deg);
+  box-shadow:
+    inset 0 6px 12px rgba(255,255,255,.95),
+    inset 0 -24px 36px rgba(150,160,180,.26),
+    inset 16px 0 30px rgba(255,255,255,.62),
+    inset -16px 0 30px rgba(160,170,190,.18),
+    0 2px 1px rgba(255,255,255,.9);
+  overflow:hidden;
+}
+/* kilau oil-slick tipis */
+.egg::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:
+    radial-gradient(60% 40% at 22% 18%, rgba(160,230,255,.30), transparent 62%),
+    radial-gradient(50% 36% at 78% 26%, rgba(255,190,235,.28), transparent 64%),
+    radial-gradient(56% 40% at 66% 78%, rgba(255,226,170,.26), transparent 66%),
+    radial-gradient(48% 34% at 26% 76%, rgba(178,255,214,.24), transparent 64%);
+  mix-blend-mode:screen;opacity:.85;
+  /* animasi dimatikan: compositing WebKit off -> repaint CPU terus (1 core) buat hiasan. Statis tetap cantik. */
+}
+@keyframes slick{from{transform:translate3d(-1.5%,-1%,0) scale(1.02)}to{transform:translate3d(1.5%,1%,0) scale(1.05)}}
+/* highlight kiri-atas */
+.egg::after{
+  content:"";position:absolute;left:11%;top:5%;width:44%;height:26%;
+  border-radius:50%;pointer-events:none;
+  background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(255,255,255,.12) 62%,transparent 78%);
+  filter:blur(3px);
+}
+/* rim / bibir plastik menonjol */
+.rim{
+  position:absolute;inset:2.4%;border-radius:inherit;pointer-events:none;
+  box-shadow:
+    inset 0 0 0 11px rgba(255,255,255,.97),
+    inset 0 0 0 12.5px rgba(196,205,220,.45),
+    inset 0 10px 18px rgba(255,255,255,.85),
+    inset 0 -14px 22px rgba(160,170,190,.28);
+  border-radius:50% 50% 47% 47%/54% 54% 46% 46%;
+}
+
+/* ------------------------------------------------------------------- teks cangkang */
+.brand{
+  position:absolute;left:0;right:0;top:14.5%;text-align:center;
+  font-family:"Comic Sans MS","Chalkboard SE","Comic Neue","Segoe Print","Trebuchet MS",cursive;
+  font-size:clamp(12px,4.1vw,17px);font-weight:700;letter-spacing:.01em;color:#5D6675;
+  text-shadow:0 1px 0 rgba(255,255,255,.95),0 -1px 0 rgba(120,130,150,.22);
+  display:flex;align-items:center;justify-content:center;gap:1px;user-select:none;
+}
+/* huruf 'o' kedua = ikon layar piksel kecil */
+.oglyph{
+  display:inline-grid;place-items:center;width:.86em;height:.86em;border-radius:3px;
+  background:linear-gradient(140deg,#8FA0B5,#66707F);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.75);
+  position:relative;top:.06em;
+}
+.oglyph i{width:.42em;height:.42em;background:#EAF3F0;display:block;border-radius:1px;
+  box-shadow:0 0 0 1px rgba(40,50,60,.35) inset}
+
+
+/* --------------------------------------------------------------------- layar */
+.screen-wrap{
+  position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+  width:55%;aspect-ratio:1/1;
+  border-radius:20px;
+  padding:9px;
+  background:linear-gradient(160deg,#FFFFFF,#E7ECF3 60%,#D2DAE6);
+  box-shadow:
+    inset 0 2px 4px rgba(255,255,255,.95),
+    0 10px 18px rgba(120,132,155,.30),
+    0 1px 0 rgba(255,255,255,.9);
+}
+.screen{
+  position:relative;width:100%;height:100%;border-radius:13px;overflow:hidden;
+  background:linear-gradient(135deg,#BFF0E2 0%,#BEE3F6 24%,#CFD6F6 48%,#F3CFE8 72%,#FBDFC6 100%);
+  box-shadow:inset 0 3px 9px rgba(60,70,90,.32),inset 0 -2px 6px rgba(255,255,255,.55);
+}
+/* garis cahaya diagonal holografik */
+.screen::before{
+  content:"";position:absolute;inset:-30%;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(115deg,
+    rgba(255,255,255,.34) 0 6px, rgba(255,255,255,0) 6px 26px,
+    rgba(255,255,255,.16) 26px 30px, rgba(255,255,255,0) 30px 64px);
+  /* animasi streak dimatikan (lihat .egg::before): repaint CPU terus karena compositing off. */
+  mix-blend-mode:screen;opacity:.75;
+}
+@keyframes streak{from{transform:translateX(-12%)}to{transform:translateX(12%)}}
+/* kaca penutup glossy */
+.glass{
+  position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:13px;
+  background:linear-gradient(150deg,rgba(255,255,255,.62) 0%,rgba(255,255,255,.16) 26%,
+             rgba(255,255,255,0) 46%,rgba(255,255,255,.10) 78%,rgba(255,255,255,.30) 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);
+}
+.glass::after{
+  content:"";position:absolute;left:-14%;top:-40%;width:62%;height:120%;
+  background:linear-gradient(90deg,rgba(255,255,255,.42),rgba(255,255,255,0));
+  transform:rotate(18deg);filter:blur(5px);
+}
+/* canvas isi layar */
+#lcd{position:absolute;inset:0;width:100%;height:100%;z-index:3;image-rendering:pixelated;
+  image-rendering:crisp-edges}
+.screen.dim #lcd{opacity:.55}
+.screen.dim::before{opacity:.3}
+
+/* -------------------------------------------------------------------- tombol */
+.btns{position:absolute;left:0;right:0;top:74%;display:flex;justify-content:center;align-items:center;gap:clamp(14px,5.4vw,26px)}
+.btn{
+  border:0;padding:0;cursor:pointer;border-radius:50%;
+  background:radial-gradient(70% 60% at 34% 26%,#FFD3DF 0%,var(--btn) 46%,var(--btn-d) 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(255,255,255,.85),
+    inset 0 -3px 5px rgba(160,70,95,.45),
+    0 3px 5px rgba(120,80,95,.35),
+    0 0 0 4px rgba(255,255,255,.75);
+  transition:transform .08s ease, box-shadow .08s ease;
+}
+.btn.sm{width:clamp(22px,7.2vw,30px);aspect-ratio:1}
+.btn.lg{width:clamp(32px,10.4vw,44px);aspect-ratio:1}
+.btn:active{transform:translateY(2px) scale(.97);
+  box-shadow:inset 0 3px 6px rgba(150,60,85,.55),0 1px 2px rgba(120,80,95,.3),0 0 0 4px rgba(255,255,255,.7)}
+.btn:focus-visible{outline:3px solid #7FB0FF;outline-offset:4px}
+
+
+
+/* -------------------------------------------------------------- panel bantuan */
+.tools{
+  position:fixed;right:10px;bottom:10px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;
+  font-size:11px;
+}
+.tools button{
+  border:1px solid rgba(255,255,255,.28);background:rgba(20,24,34,.62);color:#E6EBF2;
+  padding:5px 10px;border-radius:8px;cursor:pointer;backdrop-filter:blur(6px);font:inherit;
+}
+.tools button:hover{background:rgba(40,48,66,.8)}
+.hint{position:fixed;left:10px;bottom:10px;color:rgba(160,172,190,.85);font-size:11px;line-height:1.5;
+  background:rgba(20,24,34,.5);padding:6px 9px;border-radius:8px;backdrop-filter:blur(6px);max-width:44ch}
+kbd{background:rgba(255,255,255,.14);border-radius:4px;padding:0 4px}
+@media (prefers-reduced-motion:reduce){.egg::before,.screen::before{animation:none}}
+@media print{.tools,.hint{display:none}}
+.tools,.hint{display:none!important}   /* mode widget: sembunyikan panel bantuan */
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="egg"></div>
+  <div class="rim"></div>
+
+
+  <div class="brand" aria-label="Tamagotchi">
+    Tamagotchi
+  </div>
+
+  <div class="screen-wrap">
+    <div class="screen" id="screen">
+      <canvas id="lcd" width="128" height="128"></canvas>
+      <div class="glass"></div>
+    </div>
+  </div>
+
+  <div class="btns">
+    <button class="btn sm" id="bL" title="Refresh / ambil sampel baru" aria-label="Refresh"></button>
+    <button class="btn lg" id="bC" title="Ganti tampilan" aria-label="Ganti tampilan"></button>
+    <button class="btn sm" id="bR" title="Aksi (tergantung tampilan)" aria-label="Aksi"></button>
+  </div>
+</div>
+
+<div class="hint">
+  <b>Tombol:</b> kiri = sampel ulang · tengah = ganti tampilan (memory ⇄ Mametchi ⇄ jam) ·
+  kanan = aksi (kosongkan standby list / kasih makan / hemat daya).<br>
+  <b>Keyboard:</b> <kbd>←</kbd> <kbd>→</kbd> <kbd>Space</kbd> <kbd>E</kbd>
+</div>
+
+<div class="tools">
+  <button id="tBg">Latar gelap</button>
+  <button id="tShot">Simpan PNG</button>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ======================================================================
+   1. SUMBER DATA
+   ----------------------------------------------------------------------
+   Browser tidak bisa membaca RAM/CPU asli, jadi di bawah ini dipakai data
+   SIMULASI yang bergerak halus. Kalau nanti disambung ke data asli
+   (Electron / Tauri / AGS / skrip Python yang menulis JSON), cukup ganti
+   isi fungsi sampleSystem() di bawah ini.
+   ====================================================================== */
+
+// ====== GANTI DI SINI ======================================================
+// Kembalikan objek: {ramPct, cpuPct, diskPct, swapPct, activeMB, standbyMB,
+//                    freeMB, totalMB}. Semua angka 0..100 untuk *Pct.
+async function sampleSystem(){
+  // --- contoh menyambung ke data asli (tinggal buka komentarnya) ---
+  // const r = await fetch('http://127.0.0.1:8777/stats').then(r=>r.json());
+  // return r;
+  try { return await fetch('/stats',{cache:'no-store'}).then(r=>r.json()); }
+  catch(e){ return simulate(); }   // fallback kalau server stats mati
+}
+// ====== SAMPAI SINI ========================================================
+
+/* Petunjuk dari browser (kalau ada) supaya angkanya tidak ngawur:
+   - navigator.deviceMemory  : perkiraan RAM (GB), Chrome
+   - performance.memory      : heap JS, Chrome  */
+const TOTAL_MB = Math.round((navigator.deviceMemory || 8) * 1024);
+const CORES    = navigator.hardwareConcurrency || 8;
+
+/* ---- mesin simulasi: random walk halus supaya terasa hidup ---- */
+const S = { ram:56, cpu:22, disk:14, swap:8, standby:22 };
+function drift(v, amt, lo, hi){
+  v += (Math.random()-0.5)*amt;
+  v += (55-v)*0.008;                       // tarik pelan ke tengah
+  return Math.max(lo, Math.min(hi, v));
+}
+function simulate(){
+  S.ram     = drift(S.ram,  2.4, 18, 94);
+  S.cpu     = drift(S.cpu,  9.0,  2, 99);
+  S.disk    = drift(S.disk, 5.0,  0, 88);
+  S.swap    = drift(S.swap, 1.2,  0, 70);
+  S.standby = drift(S.standby,1.8, 3, 44);
+  const activeMB  = Math.round(TOTAL_MB * S.ram/100);
+  const standbyMB = Math.round(TOTAL_MB * S.standby/100);
+  const freeMB    = Math.max(0, TOTAL_MB - activeMB - standbyMB);
+  return { ramPct:S.ram, cpuPct:S.cpu, diskPct:S.disk, swapPct:S.swap,
+           activeMB, standbyMB, freeMB, totalMB:TOTAL_MB };
+}
+
+/* ======================================================================
+   2. STATE WIDGET
+   ====================================================================== */
+const MODES = ['mem','pet','clock'];
+let mode      = 0;          // tampilan aktif
+let stats     = simulate(); // data terakhir
+let powerSave = false;      // hemat daya: layar redup, sampel lebih jarang
+let mood      = 'ok';       // ok | happy | tired | sleep
+let moodUntil = 0;
+let tick      = 0;          // pencacah frame untuk animasi
+let flash     = 0;          // efek kilat saat aksi
+const MAPW = 30, MAPH = 8; // ukuran memory map (kolom x baris)
+let cells = new Array(MAPW*MAPH).fill(0);   // 0 free, 1 standby, 2 active
+
+function rebuildCells(){
+  const n = MAPW*MAPH;
+  const act = Math.round(n * stats.activeMB  / stats.totalMB);
+  const stb = Math.round(n * stats.standbyMB / stats.totalMB);
+  for(let i=0;i<n;i++) cells[i] = i<act ? 2 : (i<act+stb ? 1 : 0);
+  // acak sedikit supaya seperti peta memori sungguhan (tidak rapi berurutan)
+  for(let i=n-1;i>0;i--){
+    if(Math.random()<0.22){ const j=(Math.random()*(i+1))|0; const t=cells[i];cells[i]=cells[j];cells[j]=t; }
+  }
+}
+rebuildCells();
+
+/* ======================================================================
+   3. GAMBAR LAYAR (canvas piksel)
+   ====================================================================== */
+const cv  = document.getElementById('lcd');
+const ctx = cv.getContext('2d');
+const W = cv.width, H = cv.height;
+const INK = 'rgba(40,52,64,.92)', INK2 = 'rgba(40,52,64,.45)';
+
+function px(x,y,w,h,c){ ctx.fillStyle=c||INK; ctx.fillRect(x|0,y|0,w|0,h|0); }
+
+/* --- digit 7-segmen ala LCD --- */
+const SEG = { // a b c d e f g
+  '0':[1,1,1,1,1,1,0], '1':[0,1,1,0,0,0,0], '2':[1,1,0,1,1,0,1], '3':[1,1,1,1,0,0,1],
+  '4':[0,1,1,0,0,1,1], '5':[1,0,1,1,0,1,1], '6':[1,0,1,1,1,1,1], '7':[1,1,1,0,0,0,0],
+  '8':[1,1,1,1,1,1,1], '9':[1,1,1,1,0,1,1], '-':[0,0,0,0,0,0,1], ' ':[0,0,0,0,0,0,0]
+};
+function seg7(x,y,ch,s,col){            // s = tebal segmen (skala)
+  const g = SEG[ch] || SEG[' '];
+  const w = s*5, h = s*9, t = s;        // lebar, tinggi, tebal
+  const c = col||INK;
+  if(g[0]) px(x+t,   y,         w-2*t, t, c);            // a atas
+  if(g[1]) px(x+w-t, y+t,       t,     (h/2)-1.5*t, c);  // b kanan atas
+  if(g[2]) px(x+w-t, y+(h/2)+.5*t, t,  (h/2)-1.5*t, c);  // c kanan bawah
+  if(g[3]) px(x+t,   y+h-t,     w-2*t, t, c);            // d bawah
+  if(g[4]) px(x,     y+(h/2)+.5*t, t,  (h/2)-1.5*t, c);  // e kiri bawah
+  if(g[5]) px(x,     y+t,       t,     (h/2)-1.5*t, c);  // f kiri atas
+  if(g[6]) px(x+t,   y+(h/2)-.5*t, w-2*t, t, c);         // g tengah
+  return w;
+}
+function seg7text(x,y,str,s,gap,col){
+  let cx=x;
+  for(const ch of str){
+    if(ch===':'){ px(cx+s, y+s*2.5, s, s, col); px(cx+s, y+s*6, s, s, col); cx += s*3+gap; continue; }
+    cx += seg7(cx,y,ch,s,col) + gap;
+  }
+  return cx-x-gap;
+}
+
+/* --- font mini 3x5 untuk teks kecil --- */
+const F35 = {
+ A:'111101111101101',B:'110101110101110',C:'111100100100111',D:'110101101101110',
+ E:'111100110100111',F:'111100110100100',G:'111100101101111',H:'101101111101101',
+ I:'111010010010111',J:'001001001101111',K:'101101110101101',L:'100100100100111',
+ M:'101111111101101',N:'101111111111101',O:'111101101101111',P:'111101111100100',
+ Q:'111101101111011',R:'111101110101101',S:'111100111001111',T:'111010010010010',
+ U:'101101101101111',V:'101101101101010',W:'101101111111101',X:'101101010101101',
+ Y:'101101111010010',Z:'111001010100111','0':'111101101101111','1':'010110010010111',
+ '2':'111001111100111','3':'111001111001111','4':'101101111001001','5':'111100111001111',
+ '6':'111100111101111','7':'111001001001001','8':'111101111101111','9':'111101111001111',
+ '%':'101001010100101','/':'001001010100100',':':'000010000010000','.':'000000000000010',
+ '-':'000000111000000',' ':'000000000000000','!':'010010010000010','?':'110001010000010'
+};
+function mini(x,y,str,col,scale){
+  const s = scale||1; let cx = x;
+  for(const ch of String(str).toUpperCase()){
+    const g = F35[ch];
+    if(g){ for(let i=0;i<15;i++){ if(g[i]==='1') px(cx+(i%3)*s, y+((i/3)|0)*s, s, s, col||INK); } }
+    cx += 4*s;
+  }
+  return cx-x;
+}
+function miniW(str,scale){ return String(str).length*4*(scale||1); }
+function miniCenter(y,str,col,scale){ mini(((W-miniW(str,scale))/2)|0, y, str, col, scale); }
+
+/* --- Mametchi: pixel art 26x28, biru + kuning, 2 frame per ekspresi --- */
+const MAME={"ok": [["......NNNN.....NNNNNN.......", ".....NNNNNN...NNNNNNNN......", ".....NNNNNNN.NNNNNNNNN......", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "...NNNNNNNNNNNNNNNNNNNNN....", "...NNNNNNNNNNNNNNNNNNNNN....", "..NYYYYYYYYYYYYYYYYYYYYLN...", "..NYNNNNYYYYYYNNNNNYYYYLN...", ".NYNNWNWNYYYYNNWNNWNYYYYLN..", ".NYNNWNWNYYYYNNWNNWWNYYYLN..", ".NYNNNNWNYYYYNNNNNWWNYYYLN..", ".NYNNNNWNYYYYNNNNNWWNYYYLN..", ".NYNNNNWNYYYYNNNNNWNYYYYLN..", ".NYYNNNNYYYYYYNNNNNYYYYYLN..", "..NPPPYYYNNNNYYYYYYPPPYLN...", "..NPPPYYYNNNNYYYYYYPPPYLN...", "...NYYYYYYNNYYYYYYYYYYLN....", "....NNYYYYYYNNYYYYYYLNN.....", "......NNNNNNYYNNNNNNN.......", ".........NYNYYYYLNN.........", ".........NYYNNLYLNLN........", "........NNYYYYNNLNLN........", ".......NYYNYYYYYLNN.........", ".......NYYYNYYYYYLN.........", "........NLLNNNNYYYLN........", ".........NN....NNLLN........", ".................NN........."], ["............................", "......NNNN.....NNNNNN.......", ".....NNNNNN...NNNNNNNN......", ".....NNNNNNN.NNNNNNNNN......", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "...NNNNNNNNNNNNNNNNNNNNN....", "...NNNNNNNNNNNNNNNNNNNNN....", "..NYYYYYYYYYYYYYYYYYYYYLN...", "..NYNNNNYYYYYYNNNNNYYYYLN...", ".NYNNWNWNYYYYNNWNNWNYYYYLN..", ".NYNNWNWNYYYYNNWNNWWNYYYLN..", ".NYNNNNWNYYYYNNNNNWWNYYYLN..", ".NYNNNNWNYYYYNNNNNWWNYYYLN..", ".NYNNNNWNYYYYNNNNNWNYYYYLN..", ".NYYNNNNYYYYYYNNNNNYYYYYLN..", "..NPPPYYYYYYYYYYYYYPPPYLN...", "..NPPPYYNYYYYNYYYYYPPPYLN...", "...NYYYYYNNNNYYYYYYYYYLN....", "....NNYYYYYYYYYYYYYYLNN.....", "......NNNNNNNNNNNNNNN.......", ".......NLNYYLLLYYYYN........", "......NYLNYYYYYYNLLLN.......", "......NYLNLYYYYYYNLLN.......", ".......NNNNNYYYLNNNN........", "........NYYYYLLNLLN.........", "........NYYLLNNLYLN.........", ".........NNNN..NNN.........."]], "tired": [[".....NNNN........NNNN.......", "....NNNNNN......NNNNNN......", "....NNNNNNN....NNNNNNN......", "...NNNNNNNN....NNNNNNNN.....", "...NNNNNNNN....NNNNNNNN.....", "...NNNNNNNN....NNNNNNNN.....", "...NNNNNNNNNNNNNNNNNNNN.....", "...NNNNNNNNNNNNNNNNNNNN.....", "...NNNNNNNNNNNNNNNNNNNN.....", "..NNNNNNNNNNNNNNNNNNNNNN....", "..NNNNNNNNNNNNNNNNNNNNNN....", ".N.YYYYYYYYYYYYYYYYYYYYLN...", ".NYYYYYYYYYYYYYYYYYYYYYYN...", "N.YYYNNNNYYYYYYYYNNNNYYYLN..", "N.YYNYYYYNYYYYYYNYYYYNYYLN..", "N.YNYYYYYYNPPPPNYYYYYYNYLN..", "N.YNPPPPPPNPPPPNPPPPPPNYLN..", "N.YPPPPPPPPPPPPPPPPPPPPYLN..", "N.YLLLPPPYYYYYYYYYYPLLLYLN..", ".N.LLLYYYYNYYYNNYYYYLLLLN...", ".N.YYYYYYYNNNNNNYYYYYYYLN...", "..N.YYYYYYYNNNNYYYYYYYLN....", "...NN.YYYYYYYYYYYYYYLNN.....", "....NNNNNNNNNNNNNNNNNN......", "....N.YYYYYYLLLLLLLLLN......", ".....NNYYYYYYYYYYYYNN.......", ".......NN.YYYYYYYNN.........", "........N.YYYYYYLN..........", "........N.YYYYYYLN..........", "........N.LNNNNYLN..........", "........N.N....NLN..........", ".........NN....NN..........."], [".......NNNN........NNNN.....", "......NNNNNN......NNNNNN....", "......NNNNNNN....NNNNNNN....", ".....NNNNNNNN....NNNNNNNN...", ".....NNNNNNNN....NNNNNNNN...", ".....NNNNNNNN....NNNNNNNN...", ".....NNNNNNNNNNNNNNNNNNNN...", ".....NNNNNNNNNNNNNNNNNNNN...", ".....NNNNNNNNNNNNNNNNNNNN...", "....NNNNNNNNNNNNNNNNNNNNNN..", "....NNNNNNNNNNNNNNNNNNNNNN..", "...N.YYYYYYYYYYYYYYYYYYYYLN.", "...NYYYYYYYYYYYYYYYYYYYYYYN.", "..N.YYYNNNNYYYYYYYYNNNNYYYLN", "..N.YYNYYYYNYYYYYYNYYYYNYYLN", "..N.YNYYYYYYNPPPPNYYYYYYNYLN", "..N.YNPPPPPPNPPPPNPPPPPPNYLN", "..N.YPPPPPPPPPPPPPPPPPPPPYLN", "..N.YLLLPPPYYYYYYYYYYPLLLYLN", "...N.LLLYYYYNYYYNNYYYYLLLLN.", "...N.YYYYYYYNNNNNNYYYYYYYLN.", "....N.YYYYYYYNNNNYYYYYYYLN..", ".....NN.YYYYYYYYYYYYYYLNN...", "......NNNNNNNNNNNNNNNNNN....", "......N.YYYYYYLLLLLLLLLN....", ".......NNYYYYYYYYYYYYNN.....", ".........NN.YYYYYYYNN.......", "..........N.YYYYYYLN........", "..........N.YYYYYYLN........", "..........N.LNNNNYLN........", "..........N.N....NLN........", "...........NN....NN........."]], "sleep": [["......NNNN.....NNNNNN.......", ".....NNNNNN...NNNNNNNN......", ".....NNNNNNN.NNNNNNNNN......", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "...NNNNNNNNNNNNNNNNNNNNN....", "...NNNNNNNNNNNNNNNNNNNNN....", "..N.YYYYYYYYYYYYYYYYYYYLN...", "..N.YYYYYYYYYYYYYYYYYYYLN...", ".N.YYYYYYYYYYYYYYYYYYYYYLN..", ".N.YYYYYNYYYYNYYYYYYYYYYLN..", ".N.NYYYYNYYYYNYYYYYYNYYYLN..", ".N.NYYYNYYYYYYNYYYYYNYYYLN..", ".N.YNNNYYYYYYYYNNNNNYYYYLN..", ".N.YYYYYYYYYYYYYYYYYYYYYLN..", "..N.PPYYYYYYYYYYYYYPPPYLN...", "..N.PPYYNYYYYNYYYNNPPPYLN...", "...N.YYYYNNNNYYYN.LNYYLN....", "....NN.YYYYYYYYN.YLNLNN.....", "......NNNNNNNNN.YLNNN.......", "..........NLLL.YLN..........", "..........N.YYYLN...........", "..........NYYYYLN...........", "..........NYYYYLN...........", ".......NNN.YYYYLN...........", "......N...YYYYYLN...........", "......N.YYYYLLLN............", ".......NNNNNNNN............."], ["......NNNN.....NNNNNN.......", ".....NNNNNN...NNNNNNNN......", ".....NNNNNNN.NNNNNNNNN......", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNN.NNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "....NNNNNNNNNNNNNNNNNNN.....", "...NNNNNNNNNNNNNNNNNNNNN....", "...NNNNNNNNNNNNNNNNNNNNN....", "..N.YYYYYYYYYYYYYYYYYYYLN...", "..N.YNNYYYYYYYYNNNNYYYYLN...", ".N.YNYYNYYYYYYNYYYYNYYYYLN..", ".N.NYYYYNYYYYNYYYYYYNYYYLN..", ".N.NYYYYNYYYYNYYYYYYNYYYLN..", ".N.NYYYYYYYYYYYYYYYYYYYYLN..", ".N.YYYYYYYYYYYYYYYYYYYYYLN..", ".N.YYYYYNNNNNNYYYYYYYYYYLN..", "..N.PPYYNNNNNNYYYYYPPPYLN...", "..N.PPYYNNNNNNYYYNNPPPYLN...", "...N.YYYNNNNNNYYN.LNYYLN....", "....NN.YNNNNNNYN.YLNLNN.....", "......NNNNNNNNN.YLNNN.......", "..........NLLL.YLN..........", "..........N.YYYLN...........", "..........NYYYYLN...........", "..........NYYYYLN...........", ".......NNN.YYYYLN...........", "......N...YYYYYLN...........", "......N.YYYYLLLN............", ".......NNNNNNNN............."]], "happy": [["......NNNN........NNNN......", ".....NNNNNN......NNNNNN.....", ".....NNNNNNN....NNNNNNN.....", "....NNNNNNNN....NNNNNNNN....", "....NNNNNNNN....NNNNNNNN....", "....NNNNNNNN....NNNNNNNN....", "....NNNNNNNNNNNNNNNNNNNN....", "....NNNNNNNNNNNNNNNNNNNN....", "....NNNNNNNNNNNNNNNNNNNN....", "...NNNNNNNNNNNNNNNNNNNNNN...", "...NNNNNNNNNNNNNNNNNNNNNN...", "..N.YYYYYYYYYYYYYYYYYYYYLN..", "..NYYYNNNYYYYYYYYYYNNNYYYN..", ".N.YYNYYYNYYYYYYYYNYYYNYYLN.", ".N.YNYYYYYNYYYYYYNYYYYYNYLN.", ".N.YNYYYYYNYYYYYYNYYYYYNYLN.", ".N.YYYYYYYYYYYYYYYYYYYYYYLN.", ".N.YYYYYYYYNNNNNNYYYYYYYYLN.", ".N.YYYYYYYYNNNNNNYYYYYYYYLN.", "..N.PPPYYYYNNNNNNYYYYPPPLN..", "..N.PPPYYYYNNNNNNYYYYPPPLN..", "...N.YYYYYYYNNNNYYYYYYYLN...", "....NN.YYYYYYYYYYYYYYLNN....", ".....NNNNNNNNNNNNNNNNNN.....", ".....N.YYYYYYLLLLLLLLLN.....", "......NNYYYYYYYYYYYYNN......", "........NN.YYYYYYYNN........", ".........N.YYYYYYLN.........", ".........N.YYYYYYLN.........", ".........N.LNNNNYLN.........", ".........N.N....NLN.........", "..........NN....NN.........."], ["......NNNN........NNNN......", ".....NNNNNN......NNNNNN.....", ".....NNNNNNN....NNNNNNN.....", "....NNNNNNNN....NNNNNNNN....", "....NNNNNNNN....NNNNNNNN....", "....NNNNNNNN....NNNNNNNN....", "....NNNNNNNNNNNNNNNNNNNN....", "....NNNNNNNNNNNNNNNNNNNN....", "....NNNNNNNNNNNNNNNNNNNN....", "...NNNNNNNNNNNNNNNNNNNNNN...", "...NNNNNNNNNNNNNNNNNNNNNN...", "..N.YYYYYYYYYYYYYYYYYYYYLN..", "..N.YNNNNNYYYYYYYNNNNNYYLN..", ".N.YNN.NN.NYYYYYNN.NN.NYYLN.", ".N.YNN.NN..NYYYYNN.NN..NYLN.", ".N.YNNNNN..NYYYYNNNNN..NYLN.", ".N.YNNNNN..NYYYYNNNNN..NYLN.", ".N.YNNNNN.NYYYYYNNNNN.NYYLN.", ".N.YYNNNNNYYYYYYYNNNNNYYYLN.", "..N.PPPYYYYYYYYYYYYYYPPPLN..", "..N.PPPYYYYNYYYYNYYYYPPPLN..", "...N.YYYYYYYNNNNYYYYYYYLN...", "....NN.YYYYYYYYYYYYYYLNN....", "......NNNNNNNNNNNNNNNN......", "........N.YYYLLLLLLN........", ".......N.YYYYYYYYYYLN.......", "......N.YN.YYYYYYLNYLN......", "......N.LN.YYYYYYLNYLN......", ".......NNN.YYYYYYLNNN.......", ".........N.LNNNNYLN.........", ".........N.N....NLN.........", "..........NN....NN.........."]]};const C_B='#1F3763', C_Y='#E9ECAA', C_L='#D2D66E', C_W='#FFFFFF', C_P='#F3A6B4';
+function drawPet(ox,oy,s,m,f){
+  const g = (MAME[m]||MAME.ok)[f%2];
+  for(let y=0;y<g.length;y++){
+    const row=g[y];
+    for(let x=0;x<row.length;x++){
+      const c=row[x];
+      if(c==='N') px(ox+x*s, oy+y*s, s, s, C_B);
+      else if(c==='Y') px(ox+x*s, oy+y*s, s, s, C_Y);
+      else if(c==='L') px(ox+x*s, oy+y*s, s, s, C_L);
+      else if(c==='W') px(ox+x*s, oy+y*s, s, s, C_W);
+      else if(c==='P') px(ox+x*s, oy+y*s, s, s, C_P);
+    }
+  }
+}
+const PETW=28, PETH=32;
+
+/* --- bar piksel kecil --- */
+function bar(x,y,w,h,pct,label){
+  mini(x, y+1, label, INK, 1);
+  const bx = x + 18, bw = w - 18;
+  px(bx, y, bw, h, 'rgba(40,52,64,.16)');
+  const fill = Math.round(bw * Math.max(0,Math.min(100,pct))/100);
+  for(let i=0;i<fill;i+=2) px(bx+i, y, 1.4, h, INK);      // bar bergaris (dot matrix)
+  px(bx, y, 1, h, INK2); px(bx+bw-1, y, 1, h, INK2);
+}
+
+/* --- header & footer layar --- */
+function drawChrome(){
+  const d = new Date();
+  const hh = d.getHours(), h12 = ((hh+11)%12)+1;
+  const tgl = d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+  mini(4, 4, 'RAM', INK, 1);
+  mini(W-4-miniW(powerSave?'ECO':'RUN',1), 4, powerSave?'ECO':'RUN', INK, 1);
+  // ikon baterai kecil
+  px(W-30, 4, 10, 5, INK2); px(W-20, 5.5, 1.5, 2, INK2);
+  px(W-29, 5, powerSave?4:8, 3, INK);
+  mini(4, H-8, tgl, INK2, 1);
+  const jam = String(h12).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+(hh<12?' AM':' PM');
+  mini(W-4-miniW(jam,1), H-8, jam, INK2, 1);
+}
+
+/* --- tampilan 1: MEMORY MAP (gaya RAMmap) --- */
+function viewMem(){
+  const pct = Math.round(stats.ramPct);
+  const txt = String(pct).padStart(2,' ');
+  const w = seg7text(8, 14, txt, 3, 4, INK);
+  mini(8+w+6, 33, '%', INK, 2);
+  mini(8+w+6, 16, 'USED', INK2, 1);
+  mini(W-4-miniW(Math.round(stats.totalMB/1024)+'GB',1), 14, Math.round(stats.totalMB/1024)+'GB', INK2, 1);
+
+  // peta memori
+  const cw=4, ch=4, ox=(W-MAPW*cw)/2|0, oy=46;
+  px(ox-2, oy-2, MAPW*cw+4, MAPH*ch+4, 'rgba(40,52,64,.10)');
+  for(let i=0;i<cells.length;i++){
+    const x = ox + (i%MAPW)*cw, y = oy + ((i/MAPW)|0)*ch;
+    const v = cells[i];
+    if(v===2) px(x, y, cw-1, ch-1, INK);                              // active: penuh
+    else if(v===1){ px(x, y, cw-1, ch-1, 'rgba(40,52,64,.13)');       // standby: arsir
+                    px(x, y, 2, 2, INK2); px(x+2, y+2, 1, 1, INK2); }
+    else px(x, y, cw-1, ch-1, 'rgba(40,52,64,.07)');                  // free: kosong
+  }
+  // legenda
+  const ly = oy + MAPH*ch + 4;
+  px(5, ly, 3, 3, INK);                   mini(10, ly, 'ACT', INK2, 1);
+  px(30, ly, 3, 3, INK2);                 mini(35, ly, 'STB', INK2, 1);
+  px(55, ly, 3, 3, 'rgba(40,52,64,.12)'); mini(60, ly, 'FREE', INK2, 1);
+  const stb = (Math.round(stats.standbyMB/1024*10)/10)+'G';
+  mini(W-5-miniW(stb,1), ly, stb, INK2, 1);
+
+  bar(5, ly+8,  W-10, 5, stats.cpuPct,  'CPU');
+  bar(5, ly+16, W-10, 5, stats.diskPct, 'DSK');
+  bar(5, ly+24, W-10, 5, stats.swapPct, 'SWP');
+}
+
+/* --- tampilan 2: PET --- */
+function viewPet(){
+  const m = mood!=='ok' && Date.now()<moodUntil ? mood
+          : (powerSave ? 'sleep' : stats.cpuPct>78 ? 'tired' : stats.ramPct<55 ? 'happy' : 'ok');
+  const f = ((tick/26)|0)%2;
+  drawPet((W-PETW*2)/2|0, 12, 2, m, f);
+  const say = m==='happy' ? 'LEGA!' : m==='tired' ? 'BERAT...' : m==='sleep' ? 'ZZZ...' : 'SIAP';
+  miniCenter(78, say, C_B, 2);
+  bar(5, 94, W-10, 5, stats.ramPct, 'RAM');
+  bar(5, 103, W-10, 5, stats.cpuPct, 'CPU');
+  if(m==='sleep'){ mini(W-18, 28, 'Z', C_B, 1); mini(W-13, 20, 'Z', C_B, 2); }
+}
+
+/* --- tampilan 3: JAM (seperti foto aslinya) --- */
+function viewClock(){
+  const d = new Date();
+  const h12 = ((d.getHours()+11)%12)+1;
+  const t = String(h12).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+  const w = seg7text(0,0,t,3,4,'rgba(0,0,0,0)');   // ukur dulu (tak terlihat)
+  ctx.clearRect(0,0,W,H); drawBackdrop();
+  mini(5, 5, powerSave?'ECO':'RUN', INK2, 1);
+  const ramTxt = Math.round(stats.ramPct)+'% RAM';
+  mini(W-5-miniW(ramTxt,1), 5, ramTxt, INK2, 1);
+  seg7text((W-w)/2|0, 14, t, 3, 4, INK);
+  const tgl = d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+
+              String(d.getDate()).padStart(2,'0')+(d.getHours()<12?' AM':' PM');
+  miniCenter(46, tgl, INK2, 1);
+  miniCenter(56, 'MAMETCHI', C_B, 2);
+  drawPet((W-PETW*2)/2|0, 62, 2, powerSave?'sleep':'ok', ((tick/30)|0)%2);
+}
+
+function drawBackdrop(){
+  // bingkai titik-titik halus supaya terasa panel LCD
+  for(let y=2;y<H;y+=4) for(let x=2;x<W;x+=4) px(x,y,1,1,'rgba(40,52,64,.05)');
+}
+
+let toast='', toastUntil=0;   // banner hasil aksi (mis. "FREED 1234MB")
+function render(){
+  ctx.clearRect(0,0,W,H);
+  drawBackdrop();
+  if(MODES[mode]==='clock'){ viewClock(); }
+  else {
+    drawChrome();
+    if(MODES[mode]==='mem') viewMem(); else viewPet();
+  }
+  if(toast && Date.now()<toastUntil){           // banner toast di bawah LCD
+    px(4, H-14, W-8, 12, 'rgba(40,52,64,.88)');
+    miniCenter(H-12, toast, 'rgba(236,246,250,.96)', 1);
+  }
+  if(flash>0){                                  // kilat putih saat aksi
+    ctx.fillStyle='rgba(255,255,255,'+(flash/8)+')';
+    ctx.fillRect(0,0,W,H); flash--;
+  }
+}
+
+/* ======================================================================
+   4. AKSI TOMBOL
+   ====================================================================== */
+const screenEl = document.getElementById('screen');
+function labels(){}   // label tombol sengaja dihilangkan agar bersih seperti aslinya
+
+async function refresh(){
+  stats = await sampleSystem();
+  rebuildCells(); flash = 4; render();
+}
+
+/* "Empty standby list" ala RAMmap: cache (standby) dilepas jadi free.
+   Beneran manggil drop_caches lewat server (butuh sudoers NOPASSWD). */
+async function emptyStandby(){
+  flash = 8; render();
+  try {
+    const r = await fetch('/empty-standby', {method:'POST'}).then(r=>r.json());
+    stats = r;                          // STB anjlok, FREE naik — dari /proc asli
+    mood = r.ok ? 'happy' : 'tired';    // tired = sudoers belum dipasang
+    moodUntil = Date.now()+2600;
+  } catch(e){
+    mood = 'tired'; moodUntil = Date.now()+2600;
+  }
+  rebuildCells(); flash = 8; render();
+}
+/* Disk cleaner: buang sampah aman (cache/trash) lewat server. DSK turun dari df asli. */
+async function cleanDisk(){
+  toast = 'CLEANING...'; toastUntil = Date.now()+6000; flash = 8; render();
+  try {
+    const r = await fetch('/clean-disk', {method:'POST'}).then(r=>r.json());
+    stats = r;                                  // diskPct turun, dari df beneran
+    toast = r.freedMB > 0 ? ('FREED '+r.freedMB+'MB') : 'ALREADY CLEAN';
+    mood = 'happy'; moodUntil = Date.now()+2600;
+  } catch(e){
+    toast = 'CLEAN FAILED'; mood = 'tired'; moodUntil = Date.now()+2600;
+  }
+  toastUntil = Date.now()+3500; rebuildCells(); flash = 8; render();
+}
+function feed(){ S.ram = Math.max(18, S.ram-4); stats = simulate(); rebuildCells();
+  mood='happy'; moodUntil=Date.now()+2600; flash=6; render(); }
+function togglePower(){
+  powerSave = !powerSave;
+  screenEl.classList.toggle('dim', powerSave);
+  mood = powerSave ? 'sleep' : 'ok'; moodUntil = Date.now()+2200; flash=4; render();
+}
+function actionBtn(){
+  if(MODES[mode]==='mem') emptyStandby();
+  else if(MODES[mode]==='pet') feed();
+  else togglePower();
+}
+function cycleMode(d){ mode = (mode + (d||1) + MODES.length) % MODES.length; labels(); flash=3; render(); }
+
+// tombol kiri: di mode monitor (mem) = bersihin DISK, mode lain = refresh
+function leftBtn(){ if(MODES[mode]==='mem') cleanDisk(); else refresh(); }
+document.getElementById('bL').onclick = leftBtn;
+document.getElementById('bC').onclick = ()=>cycleMode(1);
+document.getElementById('bR').onclick = actionBtn;
+addEventListener('keydown', e=>{
+  if(e.key==='ArrowRight'){ cycleMode(1); }
+  else if(e.key==='ArrowLeft'){ cycleMode(-1); }
+  else if(e.key===' '){ e.preventDefault(); actionBtn(); }
+  else if(e.key.toLowerCase()==='e'){ emptyStandby(); }
+  else if(e.key.toLowerCase()==='d'){ cleanDisk(); }
+  else if(e.key.toLowerCase()==='r'){ refresh(); }
+});
+
+/* ======================================================================
+   5. LOOP
+   ====================================================================== */
+labels();
+let lastSample = 0;
+function loop(){
+  const ts = performance.now();
+  tick++;
+  const every = powerSave ? 3000 : 1000;      // hemat daya = sampel lebih jarang
+  if(ts - lastSample > every){
+    lastSample = ts;
+    sampleSystem().then(s=>{ stats = s; rebuildCells(); });
+  }
+  render();
+  // hemat daya BENERAN: compositing WebKit mati -> tiap frame render blur/gradient
+  // di CPU (mahal, 1 core penuh di 60fps). Turunin fps drastis: RUN 5fps (cukup buat
+  // monitor+pet, tamagotchi asli aja ~1-2fps), ECO 1fps (nyaris idle).
+  setTimeout(loop, powerSave ? 1000 : 200);
+}
+loop();
+
+/* ======================================================================
+   6. ALAT BANTU: latar & simpan PNG
+   ====================================================================== */
+document.getElementById('tBg').onclick = ()=>document.body.classList.toggle('solid');
+
+document.getElementById('tShot').onclick = async ()=>{
+  const node = document.getElementById('stage');
+  const r = node.getBoundingClientRect();
+  const w = Math.ceil(r.width), h = Math.ceil(r.height), scale = 3;
+  // salin isi canvas jadi data URI supaya ikut terbawa ke dalam SVG
+  const shot = cv.toDataURL('image/png');
+  const clone = node.cloneNode(true);
+  const cCanvas = clone.querySelector('#lcd');
+  const img = document.createElement('img');
+  img.setAttribute('src', shot);
+  img.setAttribute('style', cCanvas.getAttribute('style') ||
+    'position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;mix-blend-mode:multiply;z-index:3');
+  cCanvas.replaceWith(img);
+  // kumpulkan CSS halaman
+  let css = '';
+  for(const sheet of document.styleSheets){
+    try{ for(const rule of sheet.cssRules) css += rule.cssText + '\n'; }catch(e){}
+  }
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="'+w*scale+'" height="'+h*scale+'" viewBox="0 0 '+w+' '+h+'">'+
+    '<foreignObject width="100%" height="100%">'+
+    '<div xmlns="http://www.w3.org/1999/xhtml"><style>'+css+
+    '.stage{position:relative;width:'+w+'px;height:'+h+'px;filter:none}</style>'+
+    new XMLSerializer().serializeToString(clone)+'</div></foreignObject></svg>';
+  const blob = new Blob([svg], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const im = new Image();
+  im.onload = ()=>{
+    const c = document.createElement('canvas'); c.width=w*scale; c.height=h*scale;
+    c.getContext('2d').drawImage(im,0,0);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.download = 'tamagotchi-monitor.png'; a.href = c.toDataURL('image/png'); a.click();
+  };
+  im.onerror = ()=>{ URL.revokeObjectURL(url); alert('Browser menolak ekspor. Pakai screenshot bawaan sistem ya.'); };
+  im.src = url;
+};
+
+})();
+</script>
+</body>
+</html>

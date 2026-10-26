@@ -156,16 +156,69 @@ const PowerMenuBtn = () => Button({
 
 const Network = await Service.import("network");
 
+// === WIFI PICKER (scan / pilih / password / connect via nmcli) ===
+const wifiAPs = Variable([]);        // daftar jaringan hasil scan
+const wifiStatus = Variable("");     // teks feedback (scanning/gagal/tersambung)
+const wifiScanning = Variable(false);
+const selectedSSID = Variable("");   // jaringan yang lagi minta password (expand)
+
+const sigIcon = (s) => s >= 75 ? "󰤨" : s >= 50 ? "󰤥" : s >= 25 ? "󰤢" : "󰤟";
+
+const parseWifi = (out) => {
+    const seen = {};
+    out.split("\n").filter(Boolean).forEach(line => {
+        // format: IN-USE:SIGNAL:SECURITY:SSID  (SSID selalu field terakhir, bisa ada ':')
+        const m = line.match(/^(.*?):(\d+):(.*?):(.*)$/);
+        if (!m) return;
+        const ssid = m[4].replace(/\\:/g, ":").trim();
+        if (!ssid) return;  // skip SSID kosong (hidden)
+        const signal = parseInt(m[2]);
+        const ap = { ssid, signal, active: m[1].trim() === "*", secured: m[3].trim() !== "" };
+        if (!seen[ssid] || seen[ssid].signal < signal) seen[ssid] = ap;  // dedup: ambil sinyal terkuat
+    });
+    return Object.values(seen).sort((a, b) => (b.active - a.active) || (b.signal - a.signal));
+};
+
+const scanWifi = () => {
+    if (wifiScanning.value) return;
+    wifiScanning.value = true;
+    wifiStatus.value = "Memindai...";
+    Utils.execAsync(["nmcli", "-t", "-f", "IN-USE,SIGNAL,SECURITY,SSID", "device", "wifi", "list", "--rescan", "yes"])
+        .then(out => { wifiAPs.value = parseWifi(out); wifiStatus.value = ""; wifiScanning.value = false; })
+        .catch(e => { wifiStatus.value = "Scan gagal"; wifiScanning.value = false; print(e); });
+};
+
+// password lewat argv array -> aman dari shell injection (SSID/pw ada spasi/karakter aneh)
+const connectWifi = (ssid, password) => {
+    wifiStatus.value = `Menyambung ke ${ssid}…`;
+    const cmd = password
+        ? ["nmcli", "-w", "20", "device", "wifi", "connect", ssid, "password", password]
+        : ["nmcli", "-w", "20", "device", "wifi", "connect", ssid];
+    Utils.execAsync(cmd)
+        .then(() => { wifiStatus.value = `✓ Tersambung: ${ssid}`; selectedSSID.value = ""; scanWifi(); })
+        .catch(e => { wifiStatus.value = `✗ Gagal (password salah / jaringan 802.1X?)`; print(e); });
+};
+
+const disconnectWifi = (ssid) => {
+    wifiStatus.value = `Memutus ${ssid}…`;
+    Utils.execAsync(["nmcli", "connection", "down", "id", ssid])
+        .then(() => { wifiStatus.value = ""; scanWifi(); })
+        .catch(e => { wifiStatus.value = "Gagal memutus"; print(e); });
+};
+
+// auto-scan tiap popup wifi dibuka (lewat tombol bar / toggle manapun)
+App.connect("window-toggled", (_, name, visible) => {
+    if (name === "wifi-popup-window" && visible) scanWifi();
+});
+
 const Wifi = () => Box({
     className: "wifi-box",
     children: [
         Button({
             className: "wifi-btn",
-            // Klik untuk membuka pengaturan jaringan (opsional, sesuaikan dengan command-mu)
-            onClicked: () => execAsync("nm-connection-editor"), 
+            onClicked: () => { App.toggleWindow("wifi-popup-window"); scanWifi(); },
             child: Label().hook(Network, self => {
                 const { wifi } = Network;
-                // Mengubah ikon berdasarkan status
                 const icon = wifi.internet === "connected" ? "󰤨" : "󰤭";
                 self.label = `${icon} ${wifi.ssid || "Disconnected"}`;
             }),
@@ -213,28 +266,62 @@ const PowerPopupWindow = () => Window({
     })
 });
 
-// 3. WINDOW: DOCK BAWAH
+// 3. WINDOW: NAVBAR SAMPING KIRI (auto-hide, pinned + window kebuka)
 const AppItem = (client) => Button({
     className: "dock-item",
     tooltipText: client.title,
     onClicked: () => Hyprland.messageAsync(`dispatch focuswindow address:${client.address}`),
     child: Icon({
         icon: Utils.lookUpIcon(client.class) ? client.class : "application-x-executable",
-        size: 32, 
+        size: 32,
+    }),
+});
+
+// App pinned tetap (launcher). Tambah/ubah di sini sesukamu.
+const pinnedApps = [
+    { icon: "foot",               exec: "foot" },
+    { icon: "google-chrome",      exec: "google-chrome" },
+    { icon: "org.gnome.Nautilus", exec: "nautilus" },
+];
+const PinnedItem = (app) => Button({
+    className: "dock-item pinned",
+    tooltipText: app.exec,
+    onClicked: () => Utils.execAsync(app.exec).catch(print),
+    child: Icon({
+        icon: Utils.lookUpIcon(app.icon) ? app.icon : "application-x-executable",
+        size: 32,
     }),
 });
 
 const MyDock = () => Window({
     name: "caelestia-dock",
-    anchor: ["bottom"],
-    margins: [0, 0, 15, 0], 
-    layer: "top", 
+    anchor: ["left", "top", "bottom"],
+    margins: [8, 0, 8, 8],
+    layer: "top",
+    exclusivity: "exclusive", // reservasi ruang -> selalu tampil, window nyusut & gak ketutup
     child: Box({
         className: "dock-container",
-        children: Hyprland.bind("clients").as(clients => {
-            const validClients = clients.filter(c => c.title !== "" && c.class !== "");
-            return validClients.map(AppItem);
-        }),
+        vertical: true,
+        children: [
+            // --- ATAS: app pinned tetap ---
+            Box({ vertical: true, children: pinnedApps.map(PinnedItem) }),
+            // --- pemisah ---
+            Box({ className: "dock-divider" }),
+            // --- BAWAH: window yang lagi kebuka (scrollable) ---
+            Widget.Scrollable({
+                className: "dock-scroll",
+                hscroll: "never",
+                vscroll: "automatic",
+                vexpand: true,
+                child: Box({
+                    vertical: true,
+                    children: Hyprland.bind("clients").as(clients => {
+                        const validClients = clients.filter(c => c.title !== "" && c.class !== "");
+                        return validClients.map(AppItem);
+                    }),
+                }),
+            }),
+        ],
     }),
 });
 
@@ -253,118 +340,351 @@ const calendarImages = [
 ];
 const currentImg = Variable(0);
 
-// 4. WINDOW: KALENDER 3D POPUP (Minimalist Landscape & High Contrast)
-// =============================================================================
-// WINDOW: KALENDER 3D POPUP (FINAL FIX: FRAME, SLIDER, & ALIGNMENT)
-// =============================================================================
+// 4. WINDOW: KALENDER POPUP
 const CalendarPopup = () => Window({
     name: "calendar-popup-window",
     visible: false,
     anchor: ["top"],
-    margins: [20, 0], 
+    margins: [20, 0],
     child: Box({
         className: "calendar-popup-box",
-        vertical: false, 
-        spacing: 25, 
+        vertical: false,
+        spacing: 20,
         children: [
-            // --- BAGIAN KIRI: BLOK SLIDER (GAMBAR DLM FRAME + TOMBOL) ---
-            Box({
-                vertical: true, 
-                className: "left-slider-block",
-                hpack: "center",
-                spacing: 5, // MEMBERI JARAK TEGAS AGAR TOMBOL TIDAK TERTINDIH FRAME
-                children: [
-                    // --- KOTAK GAMBAR + FRAME (MENGGUNAKAN OVERLAY) ---
-                    Widget.Overlay({
-                        hpack: "center",
-                        vpack: "center",
-                        // 1. LAPISAN BAWAH: GAMBAR MIKU
-                        child: Box({
-                            className: "calendar-image",
-                            vpack: "start", // Mulai hitung posisi dari Kiri Atas
-                            hpack: "start",
-                            setup: self => self.hook(currentImg, () => {
-                                self.css = `
-                                    background-image: url('file://${calendarImages[currentImg.value]}');
-                                    background-size: cover;
-                                    background-position: center;
-                                    background-repeat: no-repeat;
-                                    
-                                    /* --- KALIBRASI UKURAN KANVAS HITAM --- */
-                                    /* Angka ini menyesuaikan lebar/tinggi kotak hitam di dalam Paint */
-                                    min-width: 300px; 
-                                    min-height: 270px;
-                                    
-                                    /* --- KALIBRASI POSISI (DORONG KE DALAM KANVAS) --- */
-                                    margin-top: 50px;  /* Dorong ke bawah menjauhi judul Paint */
-                                    margin-left: 65px; /* Dorong ke kanan menjauhi toolbar kuas */
-                                `;
-                            }),
+            // --- BAGIAN KIRI: GAMBAR (klik = ganti gambar) ---
+            Button({
+                className: "calendar-image-btn",
+                onClicked: () => {
+                    currentImg.value = (currentImg.value + 1) % calendarImages.length;
+                },
+                child: Widget.Overlay({
+                    hpack: "center",
+                    vpack: "center",
+                    child: Box({
+                        className: "calendar-image",
+                        vpack: "start",
+                        hpack: "start",
+                        setup: self => self.hook(currentImg, () => {
+                            self.css = `
+                                background-image: url('file://${calendarImages[currentImg.value]}');
+                                background-size: cover;
+                                background-position: center;
+                                background-repeat: no-repeat;
+                                min-width: 280px;
+                                min-height: 280px;
+                                margin-top: 42px;
+                                margin-left: 52px;
+                            `;
                         }),
-                        // 2. LAPISAN ATAS: FRAME BOLONG UI PAINT
-                        overlays: [
-                            Box({
-                                className: "calendar-frame",
-                                css: `
-                                    background-image: url('file://${App.configDir}/assets/mikuframecalendarnew.png');
-                                    background-size: 100% 100%; /* Paksa tampilkan seluruh gambar tanpa crop */
-                                    background-position: center;
-                                    background-repeat: no-repeat;
-                                    
-                                    /* --- UKURAN FRAME PERSEGI SEMPURNA --- */
-                                    min-width: 360px; 
-                                    min-height: 360px; 
-                                `
-                            })
-                        ]
-                    }),                    
-                    
-                    // --- BAR TOMBOL DI BAWAH GAMBAR ---
-                    Box({
-                        className: "slider-button-bar",
-                        vertical: false, 
-                        spacing: 20,
-                        hpack: "center",
-                        children: [
-                            Button({
-                                className: "slider-btn-minimal",
-                                child: Label(""), // Ikon panah kiri
-                                onClicked: () => {
-                                    let next = currentImg.value - 1;
-                                    if (next < 0) next = calendarImages.length - 1;
-                                    currentImg.value = next;
-                                }
-                            }),
-                            Button({
-                                className: "slider-btn-minimal",
-                                child: Label(""), // Ikon panah kanan
-                                onClicked: () => {
-                                    let next = currentImg.value + 1;
-                                    if (next >= calendarImages.length) next = 0;
-                                    currentImg.value = next; 
-                                }
-                            })
-                        ]
-                    })
-                ]
+                    }),
+                    overlays: [
+                        Box({
+                            className: "calendar-frame",
+                            css: `
+                                background-image: url('file://${App.configDir}/assets/mikuframecalendarnew.png');
+                                background-size: 100% 100%;
+                                background-position: center;
+                                background-repeat: no-repeat;
+                                min-width: 340px;
+                                min-height: 340px;
+                            `
+                        })
+                    ]
+                }),
             }),
-            
+
             // --- BAGIAN KANAN: KALENDER ---
             Widget.Calendar({
                 showDayNames: true,
                 showHeading: true,
                 className: "calendar-widget",
             })
-        ] 
+        ]
     })
+});
+
+// =============================================================================
+// TAMAGOTCHI digital pet — mood ikut RAM, poop kalau cache, layar monitor pixel,
+// running-text quote, tombol: kiri=refresh / tengah=ganti layar / kanan=hemat daya
+// =============================================================================
+const PET_DIR = `${App.configDir}/assets/pet`;
+
+// --- baca statistik sistem (RAM, cache, CPU delta, disk) ---
+let _cpuPrev = { idle: 0, total: 0 };
+const readCpu = () => {
+    try {
+        const p = Utils.readFile("/proc/stat").split("\n")[0].trim().split(/\s+/).slice(1).map(Number);
+        const idle = p[3] + (p[4] || 0);
+        const total = p.reduce((a, b) => a + b, 0);
+        const dIdle = idle - _cpuPrev.idle;
+        const dTotal = total - _cpuPrev.total;
+        _cpuPrev = { idle: idle, total: total };
+        return dTotal > 0 ? Math.max(0, Math.min(100, Math.round((1 - dIdle / dTotal) * 100))) : 0;
+    } catch (e) { return 0; }
+};
+const readDisk = () => {
+    try {
+        const m = Utils.exec("df -P /").split("\n")[1].match(/(\d+)%/);
+        return m ? parseInt(m[1]) : 0;
+    } catch (e) { return 0; }
+};
+const readStats = () => {
+    try {
+        const mem = Utils.readFile("/proc/meminfo");
+        const g = (k) => parseInt((mem.match(new RegExp(k + ":\\s+(\\d+)")) || [])[1] || 0);
+        const total = g("MemTotal"), avail = g("MemAvailable");
+        const cache = g("Cached") + g("Buffers") + g("SReclaimable");
+        return {
+            ram: total ? Math.round((1 - avail / total) * 100) : 0,
+            cache: total ? Math.round((cache / total) * 100) : 0,
+            cpu: readCpu(),
+            disk: readDisk(),
+        };
+    } catch (e) { return { ram: 0, cache: 0, cpu: 0, disk: 0 }; }
+};
+const petStats = Variable({ ram: 0, cache: 0, cpu: 0, disk: 0 }, { poll: [2000, readStats] });
+
+const screenMode = Variable(0);   // 0 = pet, 1 = monitor
+const powerSave = Variable(false);
+const togglePower = () => {
+    powerSave.value = !powerSave.value;
+    Utils.execAsync(["bash", "-c", `powerprofilesctl set ${powerSave.value ? "power-saver" : "balanced"}`]).catch(print);
+};
+
+const moodFor = (s) => {
+    if (s.ram >= 85) return "bunny-sad";
+    if (s.ram >= 65) return "bunny-think";
+    if (s.ram < 40) return "bunny-happy";
+    return "bunny";
+};
+
+// animasi hop: toggle tiap 650ms -> bunny loncat naik-turun
+const petHop = Variable(false);
+Utils.interval(650, () => { petHop.value = !petHop.value; });
+
+const PetBunny = () => Box({
+    className: "pet-bunny",
+    setup: (self) => {
+        const render = () => {
+            const m = powerSave.value ? "bunny-sleep" : moodFor(petStats.value);
+            const up = petHop.value && !powerSave.value;   // diam kalau mode hemat daya (tidur)
+            self.css = `
+                background-image: url('file://${PET_DIR}/${m}.svg');
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                min-width: 44px;
+                min-height: 44px;
+                margin-top: ${up ? 2 : 10}px;
+                margin-bottom: ${up ? 10 : 2}px;
+                transition: margin 0.25s ease-in-out;
+            `;
+        };
+        render();
+        self.hook(petStats, render);
+        self.hook(powerSave, render);
+        self.hook(petHop, render);
+    },
+});
+
+// --- running text (marquee) ---
+const QUOTE = "  umur 22 belum punya lambogini? a** miskin sulit susah ripuh busung lapar homeless sipilis gonore hiv rumah kardus , haargh  ★  ";
+const scrollPos = Variable(0);
+Utils.interval(90, () => { scrollPos.value = (scrollPos.value + 1) % QUOTE.length; });
+const Marquee = () => Label({
+    className: "pet-marquee",
+    label: scrollPos.bind().as((p) => (QUOTE + QUOTE).substring(p, p + 12)),
+});
+
+// --- layar monitor pixel (htop-style CPU/RAM/DISK) ---
+const bar = (pct) => {
+    const cells = 5;
+    const f = Math.max(0, Math.min(cells, Math.round((pct / 100) * cells)));
+    return "█".repeat(f) + "░".repeat(cells - f);
+};
+const monRow = (name, key) => Label({
+    className: "pet-mon-row",
+    xalign: 0,
+    label: petStats.bind().as((s) => `${name} ${bar(s[key])} ${String(s[key]).padStart(3)}%`),
+});
+
+// --- PET screen (mood) ---
+const PetView = () => Box({
+    vertical: true,
+    children: [
+        Box({
+            className: "pet-hud",
+            children: [
+                Label({ label: petStats.bind().as((s) => `RAM ${s.ram}%`), hexpand: true, xalign: 0 }),
+                Label({ className: "pet-poop", label: petStats.bind().as((s) => (s.cache >= 30 ? "💩" : "")) }),
+            ],
+        }),
+        PetBunny(),
+        Label({
+            className: "pet-nag",
+            label: petStats.bind().as((s) => {
+                if (s.ram >= 85) return "RAM penuh! bersihin";
+                if (s.cache >= 35) return "cache numpuk, eek";
+                if (s.ram < 40) return "sehat & happy!";
+                return "semua aman ~";
+            }),
+        }),
+        Marquee(),
+    ],
+});
+
+// --- MONITOR screen (pixel htop) ---
+const MonitorView = () => Box({
+    vertical: true,
+    children: [
+        Label({ className: "pet-mon-title", label: "◉ SYS MONITOR" }),
+        monRow("CPU", "cpu"),
+        monRow("RAM", "ram"),
+        monRow("DSK", "disk"),
+        monRow("CSH", "cache"),
+    ],
+});
+
+const PetWindow = () => Window({
+    name: "mindpalace-pet",
+    anchor: ["top", "right"],
+    margins: [72, 22, 0, 0],
+    layer: "top",
+    child: Box({
+        className: "pet-shell",
+        vertical: true,
+        children: [
+            Label({ className: "pet-brand", label: "Tamagotchi" }),
+            Box({
+                className: "pet-bezel",
+                hpack: "center",
+                child: Box({
+                    className: powerSave.bind().as((p) => (p ? "pet-screen dim" : "pet-screen")),
+                    hpack: "center",
+                    vpack: "center",
+                    // GtkStack homogeneous -> pet & monitor otomatis seukuran (konstan), gak resize
+                    child: Widget.Stack({
+                        transition: "crossfade",
+                        transitionDuration: 200,
+                        children: { pet: PetView(), mon: MonitorView() },
+                        shown: screenMode.bind().as((m) => (m === 0 ? "pet" : "mon")),
+                    }),
+                }),
+            }),
+            Box({
+                className: "pet-buttons",
+                hpack: "center",
+                children: [
+                    Button({ className: "pet-btn pet-btn-side", tooltipText: "Refresh stats", child: Label("↻"), onClicked: () => { petStats.value = readStats(); } }),
+                    Button({ className: "pet-btn pet-btn-mid", tooltipText: "Ganti layar (pet <-> monitor)", child: Label("▤"), onClicked: () => { screenMode.value = screenMode.value ? 0 : 1; } }),
+                    Button({ className: "pet-btn pet-btn-side", tooltipText: "Mode hemat daya", child: Label("⏻"), onClicked: togglePower }),
+                ],
+            }),
+        ],
+    }),
+});
+
+// WINDOW: WIFI PICKER POPUP
+const WifiRow = (ap) => {
+    const pwEntry = Widget.Entry({
+        className: "wifi-pw-entry",
+        visibility: false,                 // sembunyikan password (titik-titik)
+        placeholderText: "Password…",
+        hexpand: true,
+        onAccept: ({ text }) => connectWifi(ap.ssid, text),   // Enter = connect
+    });
+    return Box({
+        vertical: true,
+        children: [
+            Button({
+                className: ap.active ? "wifi-row active" : "wifi-row",
+                onClicked: () => {
+                    if (ap.active) { disconnectWifi(ap.ssid); return; }   // klik yg aktif = putus
+                    if (!ap.secured) { connectWifi(ap.ssid); return; }    // open = langsung connect
+                    selectedSSID.value = selectedSSID.value === ap.ssid ? "" : ap.ssid;  // secured = minta password
+                },
+                child: Box({
+                    children: [
+                        Label({ className: "wifi-sig", label: sigIcon(ap.signal) }),
+                        Label({ className: "wifi-ssid", label: ap.ssid, hexpand: true, xalign: 0, truncate: "end", maxWidthChars: 18 }),
+                        Label({ className: "wifi-lock", label: ap.secured ? "󰒃" : "󰦞" }),
+                        Label({ className: "wifi-check", label: ap.active ? "󰄬" : "" }),
+                    ],
+                }),
+            }),
+            Widget.Revealer({
+                transition: "slide_down",
+                transitionDuration: 180,
+                revealChild: selectedSSID.bind().as(s => s === ap.ssid),
+                child: Box({
+                    className: "wifi-pw-box",
+                    children: [
+                        pwEntry,
+                        Button({ className: "wifi-connect-btn", child: Label("󰌘"), onClicked: () => connectWifi(ap.ssid, pwEntry.text) }),
+                    ],
+                }),
+            }),
+        ],
+    });
+};
+
+const WifiPopupWindow = () => Window({
+    name: "wifi-popup-window",
+    visible: false,
+    anchor: ["top", "right"],
+    margins: [5, 15],
+    child: Box({
+        className: "wifi-popup-box",
+        vertical: true,
+        children: [
+            Box({
+                className: "wifi-popup-header",
+                children: [
+                    Label({ label: "󰤨  WiFi", hexpand: true, xalign: 0 }),
+                    Button({
+                        className: "wifi-rescan-btn",
+                        tooltipText: "Pengaturan lanjutan (enterprise/hidden)",
+                        onClicked: () => execAsync("nm-connection-editor").catch(print),
+                        child: Label("󰒓"),
+                    }),
+                    Button({
+                        className: "wifi-rescan-btn",
+                        tooltipText: "Scan ulang",
+                        onClicked: scanWifi,
+                        child: Label().hook(wifiScanning, self => { self.label = wifiScanning.value ? "󰔟" : "󰑓"; }),
+                    }),
+                ],
+            }),
+            Label({
+                className: "wifi-status",
+                xalign: 0,
+                visible: wifiStatus.bind().as(s => !!s),
+                label: wifiStatus.bind(),
+            }),
+            Widget.Scrollable({
+                className: "wifi-list-scroll",
+                hscroll: "never",
+                vscroll: "automatic",
+                child: Box({
+                    className: "wifi-list",
+                    vertical: true,
+                    children: wifiAPs.bind().as(aps => aps.length
+                        ? aps.map(WifiRow)
+                        : [Label({ className: "wifi-empty", label: "Tidak ada jaringan" })]),
+                }),
+            }),
+        ],
+    }),
 });
 
 App.config({
     style: "/home/firania/.config/ags/style.css",
     windows: [
-        MyBar(), 
-        PowerPopupWindow(), 
-        MyDock(), 
-        CalendarPopup()
+        MyBar(),
+        PowerPopupWindow(),
+        MyDock(),
+        CalendarPopup(),
+        WifiPopupWindow(),
+        // PetWindow() dipensiunkan -> diganti widget HTML Tamagotchi (~/.config/tamagotchi)
     ],
 });

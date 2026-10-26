@@ -1,0 +1,5 @@
+# Izinkan user firania mengosongkan page cache (Empty Standby List ala RAMmap)
+# tanpa password, HANYA perintah spesifik ini. Dipakai oleh server.py.
+# Install:
+#   sudo install -m 0440 ~/.config/tamagotchi/tamagotchi-dropcaches.sudoers /etc/sudoers.d/tamagotchi-dropcaches
+firania ALL=(root) NOPASSWD: /usr/bin/tee /proc/sys/vm/drop_caches
