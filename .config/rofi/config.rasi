@@ -1,0 +1,75 @@
+configuration {
+    modi:                       "drun";
+    show-icons:                 true;
+    display-drun:               "🔍";
+    drun-display-format:        "{name}";
+    hover-select:               true;
+    me-select-entry:            "";
+    me-accept-entry:            "MousePrimary";
+}
+
+* {
+    font: "JetBrainsMono Nerd Font 12";
+    bg-col:  #373b3e;         /* Abu-abu gelap pilihanmu */
+    bg-alt:  #55595e;
+    fg-col:  #bec8d1;
+    accent:  #86cecb;         /* Light Cyan pilihanmu */
+    magenta: #f3008e;         /* Magenta pilihanmu */
+    
+    background-color: transparent;
+    text-color: @fg-col;
+}
+
+window {
+    transparency: "real";
+    background-color: rgba(55, 59, 62, 0.85);
+    border: 2px solid rgba(134, 206, 203, 0.6); /* Bingkai Light Cyan */
+    border-radius: 16px;
+    width: 600px;
+    padding: 20px;
+}
+
+mainbox {
+    children: [ inputbar, listview ];
+}
+
+inputbar {
+    background-color: @bg-alt;
+    border-radius: 10px;
+    padding: 10px;
+    children: [ prompt, entry ];
+    margin: 0px 0px 15px 0px;
+}
+
+prompt {
+    text-color: @accent;
+    padding: 0px 10px 0px 0px;
+}
+
+entry {
+    text-color: @fg-col;
+    placeholder: "Cari aplikasi di sini...";
+}
+
+listview {
+    columns: 1;
+    lines: 7;
+    fixed-height: true;
+}
+
+element {
+    padding: 8px;
+    border-radius: 8px;
+}
+
+element-icon {
+    size: 24px;
+    padding: 0px 10px 0px 0px;
+}
+
+/* Saat mouse menyorot (hover), teks berubah menjadi Magenta murni pilihanmu */
+element selected.normal {
+    background-color: rgba(134, 206, 203, 0.15);
+    text-color: @magenta;
+    border: 1px solid @accent;
+}

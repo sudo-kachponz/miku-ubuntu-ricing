@@ -1,0 +1,5 @@
+[cmd_duration]
+min_time = 2_000
+style = "bold #39C5BB"
+format = "took [$duration]($style) "
+

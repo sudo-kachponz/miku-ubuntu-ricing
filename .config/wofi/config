@@ -1,0 +1,11 @@
+hide_scroll=true
+show=drun
+width=600
+height=400
+location=top_left
+xoffset=15
+yoffset=60
+allow_markup=true
+allow_images=true
+image_size=32
+term=gnome-terminal

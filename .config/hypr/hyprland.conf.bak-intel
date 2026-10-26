@@ -1,0 +1,182 @@
+# =====================================================================
+# MASTER CONFIG V8: CUSTOM GRAPHIC PALETTE THEME - FIRANIA
+# (POWERED BY CAELESTIA FLUID ANIMATIONS)
+# =====================================================================
+
+# --- SINKRONISASI JEMBATAN GRAFIS ---
+exec-once = dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XAUTHORITY
+exec-once = systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY XAUTHORITY
+
+# --- ENVIRONMENT VARIABLES (WAYLAND & HARDWARE ACCEL) ---
+# Variabel ini memaksa Chrome & aplikasi lain mendeteksi Wayland
+env = XDG_SESSION_TYPE,wayland
+env = XDG_CURRENT_DESKTOP,Hyprland
+env = XDG_SESSION_DESKTOP,Hyprland
+env = ELECTRON_OZONE_PLATFORM_HINT,auto
+env = OZONE_PLATFORM,wayland
+
+# --- NVIDIA GPU (RTX 4070 Max-Q) ---
+env = LIBVA_DRIVER_NAME,nvidia
+env = GBM_BACKEND,nvidia-drm
+env = __GLX_VENDOR_LIBRARY_NAME,nvidia
+env = WLR_NO_HARDWARE_CURSORS,1
+
+# --- VARIABEL APLIKASI ---
+$mainMod = SUPER
+$terminal = foot
+$fileManager = nautilus
+$menu = wofi --show drun --allow-images
+
+# --- TOMBOL PINTAS (KEYBINDS DASAR) ---
+bind = $mainMod, Q, exec, $terminal
+bind = $mainMod, C, killactive,
+bind = $mainMod, M, exec, command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch exit
+bind = $mainMod, E, exec, $fileManager
+bind = $mainMod, V, togglefloating,
+bind = $mainMod, R, exec, $menu
+
+# Fullscreen: kunci 1 window jadi penuh (biar window baru gak geser2 saat share screen)
+bind = $mainMod, F, fullscreen, 1        # maximize: penuh tapi waybar tetap kelihatan
+bind = $mainMod SHIFT, F, fullscreen, 0  # true fullscreen: benar-benar penuh layar
+
+# Toggle Tamagotchi HTML widget (tampil/sembunyi)
+bind = $mainMod, P, exec, pkill -f 'tamagotchi/widget.js' || ~/.config/tamagotchi/launch.sh
+
+# --- KONTROL MANAJEMEN JENDELA & MOUSE AJAIB ---
+bind = $mainMod, left, movefocus, l
+bind = $mainMod, right, movefocus, r
+bind = $mainMod, up, movefocus, u
+bind = $mainMod, down, movefocus, d
+
+bind = $mainMod CTRL, left, movewindow, l
+bind = $mainMod CTRL, right, movewindow, r
+bind = $mainMod CTRL, up, movewindow, u
+bind = $mainMod CTRL, down, movewindow, d
+
+binde = $mainMod SHIFT, left, resizeactive,-50 0
+binde = $mainMod SHIFT, right, resizeactive,50 0
+binde = $mainMod SHIFT, up, resizeactive,0 -50
+binde = $mainMod SHIFT, down, resizeactive,0 50
+
+bindm = $mainMod, mouse:272, movewindow
+bindm = $mainMod, mouse:273, resizewindow
+
+# --- SEKTOR SCREENSHOT ---
+bind = , PRINT, exec, hyprshot -m region --output-folder ~/Pictures/Screenshots --swappy
+bind = SUPER SHIFT, S, exec, grim -g "$(slurp)" - | tee ~/Pictures/Screenshots/$(date +'%Y%m%d-%H%M%S').png | wl-copy
+
+# --- PENGATURAN XWAYLAND & DEBUG ---
+xwayland {
+    force_zero_scaling = true
+}
+
+
+# --- SEKTOR MISC (CAELESTIA) ---
+misc {
+    vrr = 1
+    animate_manual_resizes = false
+    animate_mouse_windowdragging = false
+    disable_hyprland_logo = true
+    force_default_wallpaper = 0
+    on_focus_under_fullscreen = 2
+    allow_session_lock_restore = true
+    middle_click_paste = false
+    focus_on_activate = false
+    session_lock_xray = true
+    mouse_move_enables_dpms = true
+    key_press_enables_dpms = true
+    # Background diganti ke Dark Grey dari palet Miku
+    background_color = rgb(373b3e)
+}
+
+# --- SEKTOR TAMPILAN, BORDER & LAYOUT (MIKU PALETTE & PURE CAELESTIA STYLE) ---
+general {
+    gaps_in = 6
+    gaps_out = 12
+    border_size = 5
+
+    layout = dwindle
+
+    # INI DIA KUNCINYA: Mengaktifkan ubah ukuran dengan menarik pinggiran jendela
+    resize_on_border = true
+    extend_border_grab_area = 15 # Memperlebar area klik agar lebih mudah ditarik
+
+    col.active_border = rgba(e12885ff) rgba(137a7fff) rgba(86cecbff) 45deg
+    col.inactive_border = rgba(373b3eee)
+}
+
+# --- PENGATURAN LAYOUT DWINDLE (MANAJEMEN JENDELA LUWES) ---
+dwindle {
+    preserve_split = true
+    smart_split = false
+    smart_resizing = true # Membuat besar-kecil jendela pakai mouse jadi sangat responsif
+}
+
+# --- SEKTOR ESTETIKA, OPACITY & BLUR ---
+decoration {
+    rounding = 12
+    active_opacity = 0.88
+    inactive_opacity = 0.80
+
+    blur {
+        enabled = true
+        size = 6
+        passes = 3
+        new_optimizations = true
+        brightness = 0.30
+        contrast = 1.4
+    }
+}
+
+# --- SEKTOR ANIMASI FLUID (CAELESTIA × macOS SMOOTH) ---
+animations {
+    enabled = true
+
+    # Kurva: expo ease-out (mendarat halus) + spring overshoot ala macOS
+    bezier = macMove,    0.16, 1,    0.30, 1        # expo out - gerak/pindah super smooth
+    bezier = macPop,     0.05, 0.9,  0.10, 1.05     # spring lembut - window muncul (sedikit overshoot)
+    bezier = macOut,     0.30, 0,    0.80, 0.15     # akselerasi - window keluar
+    bezier = macEmph,    0.45, 0,    0.15, 1        # emphasized in-out untuk workspace
+    bezier = specialWorkSwitch, 0.05, 0.7, 0.1, 1
+
+    # Window: pop halus saat muncul, mengecil saat hilang
+    animation = windows,     1, 6, macPop,  popin 80%
+    animation = windowsIn,   1, 6, macPop,  popin 80%
+    animation = windowsOut,  1, 5, macOut,  popin 82%
+    animation = windowsMove, 1, 6, macMove
+
+    # Layer (menu/wofi/notif): fade-slide lembut
+    animation = layers,     1, 5, macMove, fade
+    animation = layersIn,   1, 5, macMove, slide
+    animation = layersOut,  1, 4, macOut,  slide
+    animation = fadeLayers, 1, 5, macMove
+
+    # Fade & border
+    animation = fade,        1, 6,  macMove
+    animation = fadeDim,     1, 6,  macMove
+    animation = border,      1, 10, macMove
+    animation = borderangle, 1, 40, macMove, loop   # gradient border berputar pelan (vibe Caelestia)
+
+    # Workspace: slide emphasized, terasa "ditarik" halus
+    animation = workspaces,       1, 6, macEmph, slide
+    animation = specialWorkspace, 1, 5, specialWorkSwitch, slidefadevert 15%
+}
+
+# --- WINDOW RULES & WORKSPACE RULES (CAELESTIA STYLE) ---
+# SHARE SCREEN BERSIH (traditional): klik window yang mau dipamerin lalu tekan Super+F (maximize).
+# Window jadi penuh menutup grid -> viewers lihat satu tampilan bersih. Tekan Super+F lagi buat keluar.
+
+# Aturan smart gaps untuk jendela tunggal (Gaps out = 12)
+workspace = w[tv1]s[false], gapsout:12
+
+# --- PERINTAH AUTOSTART ---
+exec-once = ags
+# Tamagotchi HTML widget (RAMmap): server stats + webview layer (env GL dibersihkan di launch.sh)
+exec-once = ~/.config/tamagotchi/launch.sh
+exec-once = gnome-keyring-daemon --start --components=secrets
+exec-once = /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+exec-once = wl-paste --type text --watch cliphist store
+exec-once = wl-paste --type image --watch cliphist store
+exec-once = swaybg -i "/home/firania/Downloads/wp5633267-anime-4k-ps3-wallpapers.jpg" -m fill
+exec-once = gnome-terminal --title="JamWidget" -- sh -c "tty-clock -c -C 6 -s -B; exec zsh"
+

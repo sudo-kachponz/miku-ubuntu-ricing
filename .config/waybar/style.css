@@ -1,0 +1,69 @@
+* {
+    font-family: "JetBrainsMono Nerd Font", sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+window#waybar {
+    background-color: transparent;
+}
+
+/* Base Pill: Menggunakan #373b3e dengan border #86cecb dan teks #bec8d1 */
+.modules-left, .modules-center, .modules-right {
+    background-color: rgba(55, 59, 62, 0.85); 
+    border: 2px solid rgba(134, 206, 203, 0.6); 
+    border-radius: 20px; 
+    padding: 2px 20px;
+    color: #bec8d1;
+}
+
+#workspaces button {
+    color: #bec8d1; 
+    background: transparent;
+    padding: 0 6px;
+}
+
+/* Workspace Aktif: Menyala warna #86cecb */
+#workspaces button.active {
+    color: #86cecb; 
+    text-shadow: 0 0 8px rgba(134, 206, 203, 0.8);
+}
+
+#clock { 
+    color: #f4c2c2; 
+}
+
+#cpu { 
+    color: #86cecb; /* light cyan */
+}
+
+#memory { 
+    color: #f3008e; /* magenta */
+}
+
+#network { 
+    color: #86cecb; /* FIX: Sekarang menggunakan Light Cyan pilihanmu */
+}
+
+#battery { 
+    color: #bec8d1; 
+}
+
+#battery.warning { 
+    color: #f3008e; /* magenta */
+}
+
+#battery.critical { 
+    color: #e12885; /* #e12885 */
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+/* Tombol Power: Menyala warna pink/magenta #e12885 */
+#custom-power {
+    color: #e12885;
+    margin-left: 5px;
+}
