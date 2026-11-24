@@ -6,6 +6,7 @@ const Hyprland = await Service.import("hyprland");
 const Audio = await Service.import("audio");
 const Battery = await Service.import("battery");
 const SystemTray = await Service.import("systemtray");
+const Notifications = await Service.import("notifications");
 
 // Tombol Start Menu (Wofi) - MURNI GAMBAR TAMAGOTCHI (TANPA KOTAK)
 const LauncherBtn = () => Button({
@@ -58,12 +59,21 @@ const Clock = () => Button({
 // KANAN: Modul System (SysTray, Brightness, Volume, Battery, Power)
 const SysTray = () => Box({
     className: "systray",
-    children: SystemTray.bind("items").as(items => items.map(item => Button({
-        child: Icon({ icon: item.bind("icon") }),
-        onPrimaryClick: (_, event) => item.activate(event),
-        onSecondaryClick: (_, event) => item.openMenu(event),
-        tooltipMarkup: item.bind("tooltip_markup"),
-    }))),
+    // dedup: Slack registrasi 2 tray icon (snap bug)
+    children: SystemTray.bind("items").as(items => {
+        const seen = new Set();
+        return items.filter(item => {
+            const key = item.id || item.title || "";
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        }).map(item => Button({
+            child: Icon({ icon: item.bind("icon") }),
+            onPrimaryClick: (_, event) => item.activate(event),
+            onSecondaryClick: (_, event) => item.openMenu(event),
+            tooltipMarkup: item.bind("tooltip_markup"),
+        }));
+    }),
 });
 
 // Widget Brightness dengan Tombol Kontrol
@@ -226,11 +236,46 @@ const Wifi = () => Box({
     ],
 });
 
+// Shift Mode Widget (eco/comfort/turbo) — cycle on click, Miku cursor icons
+const SHIFT_MODES = ["eco", "comfort", "turbo"];
+const SHIFT_IMGS = {
+    eco: `${App.configDir}/assets/shift-eco.png`,
+    comfort: `${App.configDir}/assets/shift-comfort.png`,
+    turbo: `${App.configDir}/assets/shift-turbo.png`,
+};
+const shiftMode = Variable("comfort", {
+    poll: [5000, 'cat /sys/devices/platform/msi-ec/shift_mode', out => out.trim()]
+});
+const ShiftMode = () => Button({
+    className: "shift-mode-btn",
+    tooltipText: "MSI Shift Mode (klik untuk ganti)",
+    onClicked: () => {
+        const cur = shiftMode.value;
+        const next = SHIFT_MODES[(SHIFT_MODES.indexOf(cur) + 1) % SHIFT_MODES.length];
+        execAsync(["bash", "-c", `echo ${next} | sudo -n tee /sys/devices/platform/msi-ec/shift_mode`])
+            .then(() => { shiftMode.value = next; })
+            .catch(print);
+    },
+    child: Box({
+        className: "shift-icon",
+        setup: self => self.hook(shiftMode, () => {
+            self.css = `
+                background-image: url('file://${SHIFT_IMGS[shiftMode.value] || SHIFT_IMGS.comfort}');
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                min-width: 28px;
+                min-height: 28px;
+            `;
+        }),
+    }),
+});
+
 const RightModules = () => Box({
     className: "right-modules",
     spacing: 15,
     halign: "end",
-    children: [SysTray(), Brightness(), Volume(), BatteryWidget(), PowerMenuBtn(), Wifi()],
+    children: [SysTray(), ShiftMode(), Brightness(), Volume(), BatteryWidget(), PowerMenuBtn(), Wifi()],
 });
 
 // === DEKLARASI WINDOWS ===
@@ -282,14 +327,38 @@ const pinnedApps = [
     { icon: "foot",               exec: "foot" },
     { icon: "google-chrome",      exec: "google-chrome" },
     { icon: "org.gnome.Nautilus", exec: "nautilus" },
+    { icon: "slack",              exec: "slack" },
 ];
 const PinnedItem = (app) => Button({
     className: "dock-item pinned",
     tooltipText: app.exec,
     onClicked: () => Utils.execAsync(app.exec).catch(print),
-    child: Icon({
-        icon: Utils.lookUpIcon(app.icon) ? app.icon : "application-x-executable",
-        size: 32,
+    child: Widget.Overlay({
+        child: Icon({
+            icon: Utils.lookUpIcon(app.icon) ? app.icon : "application-x-executable",
+            size: 32,
+        }),
+        overlays: [
+            Box({
+                className: "dock-notif-badge",
+                hpack: "end",
+                vpack: "start",
+                css: `
+                    background-image: url('file://${App.configDir}/assets/mikunavleft.png');
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    min-width: 18px;
+                    min-height: 18px;
+                `,
+                setup: self => self.hook(Notifications, () => {
+                    const has = Notifications.notifications.some(n =>
+                        (n.appName || "").toLowerCase().includes(app.icon.toLowerCase())
+                    );
+                    self.visible = has;
+                }),
+            }),
+        ],
     }),
 });
 
@@ -339,6 +408,185 @@ const calendarImages = [
     `${App.configDir}/assets/miku9calendar.jpeg` 
 ];
 const currentImg = Variable(0);
+
+// --- GOOGLE CALENDAR EVENTS ---
+const GCAL_CMD = ['bash', '-c', '/home/firania/.local/bin/gcalcli --calendar "firania.putri@datasaur.ai" agenda --tsv --nocolor --nodeclined 2>/dev/null | tail -n +2 | head -20'];
+const gcalEvents = Variable("");
+// poll tiap 5 menit
+Utils.interval(300000, () => {
+    execAsync(GCAL_CMD).then(out => { gcalEvents.value = out; }).catch(print);
+});
+// initial fetch
+execAsync(GCAL_CMD).then(out => { gcalEvents.value = out; }).catch(print);
+// refresh waktu popup dibuka
+App.connect("window-toggled", (_, name, visible) => {
+    if (name === "calendar-popup-window" && visible)
+        execAsync(GCAL_CMD).then(out => { gcalEvents.value = out; }).catch(print);
+});
+
+// Rainbow dot colors (me ji ku hi bi ni u)
+const DOT_COLORS = ["#ff6b9d", "#ff9a76", "#ffd56b", "#6bcf7f", "#6bb5ff", "#9d6bff", "#d96bff"];
+
+const parseGcalEvents = (raw) => {
+    if (!raw) return [];
+    let colorIdx = 0;
+    return raw.split("\n").filter(Boolean).map(line => {
+        const parts = line.split("\t");
+        if (parts.length < 5) return null;
+        const [sDate, sTime, eDate, eTime, ...titleParts] = parts;
+        const color = DOT_COLORS[colorIdx % DOT_COLORS.length];
+        colorIdx++;
+        return { date: sDate, start: sTime, end: eTime, title: titleParts.join(" "), color };
+    }).filter(Boolean);
+};
+
+// Build date->events map for calendar dots
+const eventsByDate = (events) => {
+    const map = {};
+    for (const ev of events) {
+        if (!map[ev.date]) map[ev.date] = [];
+        map[ev.date].push(ev);
+    }
+    return map;
+};
+
+// Custom calendar with dot indicators
+const calMonth = Variable(new Date().getMonth());
+const calYear = Variable(new Date().getFullYear());
+
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+const CalendarGrid = () => {
+    const grid = Box({
+        className: "cal-grid",
+        vertical: true,
+        setup: self => {
+            const render = () => {
+                const events = parseGcalEvents(gcalEvents.value);
+                const eMap = eventsByDate(events);
+                const month = calMonth.value;
+                const year = calYear.value;
+                const today = new Date();
+
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const prevDays = new Date(year, month, 0).getDate();
+
+                const monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
+
+                // Header: < Month > < Year >
+                const header = Box({
+                    className: "cal-header",
+                    children: [
+                        Button({ className: "cal-nav", child: Label("❮"), onClicked: () => {
+                            if (calMonth.value === 0) { calMonth.value = 11; calYear.value--; }
+                            else calMonth.value--;
+                        }}),
+                        Label({ className: "cal-month", label: monthNames[month], hexpand: true }),
+                        Button({ className: "cal-nav", child: Label("❯"), onClicked: () => {
+                            if (calMonth.value === 11) { calMonth.value = 0; calYear.value++; }
+                            else calMonth.value++;
+                        }}),
+                        Button({ className: "cal-nav", child: Label("❮"), onClicked: () => { calYear.value--; } }),
+                        Label({ className: "cal-year", label: `${year}` }),
+                        Button({ className: "cal-nav", child: Label("❯"), onClicked: () => { calYear.value++; } }),
+                    ],
+                });
+
+                // Day name row
+                const dayRow = Box({
+                    className: "cal-daynames",
+                    children: DAY_NAMES.map(d => Label({ className: "cal-dayname", label: d, hexpand: true })),
+                });
+
+                // Day cells
+                const rows = [];
+                let cells = [];
+                // Previous month padding
+                for (let i = 0; i < firstDay; i++) {
+                    const d = prevDays - firstDay + 1 + i;
+                    cells.push(Box({ className: "cal-cell dim", hexpand: true, vertical: true, children: [Label({ label: `${d}` })] }));
+                }
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+                    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+                    const dayEvents = eMap[dateStr] || [];
+
+                    const dots = dayEvents.length > 0
+                        ? Box({
+                            className: "cal-dots",
+                            hpack: "center",
+                            spacing: 2,
+                            children: dayEvents.slice(0, 4).map(ev => Box({
+                                className: "cal-dot",
+                                css: `background-color: ${ev.color}; min-width: 5px; min-height: 5px; border-radius: 50%;`,
+                            })),
+                        })
+                        : Box({ css: "min-height: 5px;" });
+
+                    cells.push(Box({
+                        className: `cal-cell${isToday ? " today" : ""}`,
+                        hexpand: true,
+                        vertical: true,
+                        children: [Label({ label: `${d}` }), dots],
+                    }));
+
+                    if (cells.length === 7) {
+                        rows.push(Box({ className: "cal-row", children: cells }));
+                        cells = [];
+                    }
+                }
+                // Next month padding
+                let nextD = 1;
+                while (cells.length > 0 && cells.length < 7) {
+                    cells.push(Box({ className: "cal-cell dim", hexpand: true, vertical: true, children: [Label({ label: `${nextD++}` })] }));
+                }
+                if (cells.length) rows.push(Box({ className: "cal-row", children: cells }));
+
+                self.children = [header, dayRow, ...rows];
+            };
+            render();
+            self.hook(calMonth, render);
+            self.hook(calYear, render);
+            self.hook(gcalEvents, render);
+        },
+    });
+    return grid;
+};
+
+// Event list with colored dots
+const EventList = () => Widget.Scrollable({
+    className: "gcal-scroll",
+    hscroll: "never",
+    vscroll: "automatic",
+    child: Box({
+        className: "gcal-events",
+        vertical: true,
+        children: gcalEvents.bind().as(raw => {
+            const events = parseGcalEvents(raw);
+            if (!events.length) return [Label({ className: "gcal-empty", label: "No upcoming events" })];
+            let lastDate = "";
+            const widgets = [];
+            for (const ev of events) {
+                if (ev.date !== lastDate) {
+                    lastDate = ev.date;
+                    widgets.push(Label({ className: "gcal-date", label: ev.date, xalign: 0 }));
+                }
+                const time = ev.start ? `${ev.start}–${ev.end}` : "All day";
+                widgets.push(Box({
+                    className: "gcal-event-row",
+                    spacing: 6,
+                    children: [
+                        Box({ className: "gcal-event-dot", css: `background-color: ${ev.color}; min-width: 8px; min-height: 8px; border-radius: 50%; margin-top: 4px;` }),
+                        Label({ className: "gcal-event", label: `${time}  ${ev.title}`, xalign: 0, wrap: true, maxWidthChars: 26 }),
+                    ],
+                }));
+            }
+            return widgets;
+        }),
+    }),
+});
 
 // 4. WINDOW: KALENDER POPUP
 const CalendarPopup = () => Window({
@@ -393,11 +641,17 @@ const CalendarPopup = () => Window({
                 }),
             }),
 
-            // --- BAGIAN KANAN: KALENDER ---
-            Widget.Calendar({
-                showDayNames: true,
-                showHeading: true,
-                className: "calendar-widget",
+            // --- TENGAH: KALENDER CUSTOM DENGAN DOTS ---
+            CalendarGrid(),
+
+            // --- KANAN: GOOGLE CALENDAR EVENTS ---
+            Box({
+                className: "gcal-panel",
+                vertical: true,
+                children: [
+                    Label({ className: "gcal-title", label: "📅 Google Calendar", xalign: 0 }),
+                    EventList(),
+                ],
             })
         ]
     })
@@ -677,6 +931,111 @@ const WifiPopupWindow = () => Window({
     }),
 });
 
+// === NOTIFICATIONS (rainbow pastel ala tamagotchi egg) ===
+// Notif numpuk lama (10 menit) sampai di-dismiss manual
+Notifications.popupTimeout = 600000;
+Notifications.forceTimeout = true;
+Notifications.cacheActions = false;
+
+const NotifIcon = (n) => {
+    const tryIcon = (name) => name && Utils.lookUpIcon(name);
+    const candidates = [n.appIcon, n.appEntry, (n.appName || "").toLowerCase()];
+    for (const c of candidates)
+        if (tryIcon(c)) return Icon({ className: "notif-icon", icon: c, size: 36 });
+    if (n.image) return Box({
+        className: "notif-img",
+        css: `background-image: url('${n.image}'); background-size: cover; background-position: center;`,
+    });
+    return Icon({ className: "notif-icon", icon: "dialog-information-symbolic", size: 36 });
+};
+
+const focusApp = (n) => {
+    // invoke default action (Slack pake ini buat buka chat)
+    const def = n.actions?.find(a => a.id === "default");
+    if (def) n.invoke("default");
+    // juga focus window via Hyprland
+    const cls = (n.appName || "").toLowerCase();
+    if (cls) Hyprland.messageAsync(`dispatch focuswindow class:${cls}`).catch(() => {});
+};
+
+const dismissAnimated = (widget, n) => {
+    widget.toggleClassName("notif-dismissing", true);
+    Utils.timeout(400, () => { n.dismiss(); n.close(); });
+};
+
+const Notification = (n) => Button({
+    className: "notif-border",
+    onClicked: (self) => { focusApp(n); dismissAnimated(self, n); },
+    child: Box({
+        className: "notif-rainbow",
+        child: Box({
+            className: "notif-inner",
+            children: [
+                NotifIcon(n),
+                Box({
+                    vertical: true,
+                    hexpand: true,
+                    children: [
+                        Box({
+                            children: [
+                                Label({ className: "notif-app", label: (n.appName || "").toUpperCase() }),
+                                Box({ hexpand: true }),
+                                Button({ className: "notif-close", child: Label("✕"), onClicked: (self) => { dismissAnimated(self.get_parent().get_parent().get_parent().get_parent().get_parent(), n); } }),
+                            ],
+                        }),
+                        Label({ className: "notif-title", label: n.summary || "", xalign: 0, truncate: "end", maxWidthChars: 30 }),
+                        Label({ className: "notif-body", label: n.body || "", xalign: 0, wrap: true, maxWidthChars: 36, useMarkup: true }),
+                    ],
+                }),
+            ],
+        }),
+    }),
+});
+
+const NotifPopups = () => {
+    const list = Box({
+        className: "notif-list",
+        vertical: true,
+        // deduplicate: Slack kirim 2 notif identik per pesan
+        children: Notifications.bind("popups").as(p => {
+            const seen = new Set();
+            return p.filter(n => {
+                const key = `${n.appName}|${n.summary}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            }).map(Notification);
+        }),
+    });
+    const clearAll = Button({
+        className: "notif-clear-all",
+        child: Label("✕ Clear All"),
+        visible: Notifications.bind("popups").as(p => p.length > 0),
+        onClicked: () => {
+            // animate all out, then clear
+            list.children.forEach((w, i) => {
+                Utils.timeout(i * 80, () => w.toggleClassName("notif-dismissing", true));
+            });
+            Utils.timeout(list.children.length * 80 + 400, () => {
+                Notifications.notifications.forEach(n => n.close());
+                Notifications.clear();
+            });
+        },
+    });
+
+    return Window({
+        name: "notifications",
+        anchor: ["top", "right"],
+        margins: [48, 14],
+        layer: "overlay",
+        child: Box({
+            css: "min-width: 360px; min-height: 2px;",
+            vertical: true,
+            children: [clearAll, list],
+        }),
+    });
+};
+
 App.config({
     style: "/home/firania/.config/ags/style.css",
     windows: [
@@ -686,5 +1045,6 @@ App.config({
         CalendarPopup(),
         WifiPopupWindow(),
         // PetWindow() dipensiunkan -> diganti widget HTML Tamagotchi (~/.config/tamagotchi)
+        NotifPopups(),
     ],
 });

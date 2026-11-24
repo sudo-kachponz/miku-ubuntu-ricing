@@ -2,4 +2,4 @@
 # tanpa password, HANYA perintah spesifik ini. Dipakai oleh server.py.
 # Install:
 #   sudo install -m 0440 ~/.config/tamagotchi/tamagotchi-dropcaches.sudoers /etc/sudoers.d/tamagotchi-dropcaches
-firania ALL=(root) NOPASSWD: /usr/bin/tee /proc/sys/vm/drop_caches
+firania ALL=(root) NOPASSWD: /usr/bin/tee /proc/sys/vm/drop_caches, /usr/bin/tee /proc/sys/vm/compact_memory, /usr/bin/apt-get clean, /usr/bin/journalctl --vacuum-size=200M

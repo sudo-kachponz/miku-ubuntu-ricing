@@ -1,10 +1,8 @@
-/* ============================================================
-   WOFI LAUNCHER — CAELESTIA GLASS (teal kaca + gradient Miku)
-   ============================================================ */
+/* WOFI — MIKU BREAKING TEAL THEME */
 window {
     margin: 0px;
-    border: 1px solid rgba(134, 206, 203, 0.35);
-    background-color: rgba(11, 74, 77, 0.82);
+    border: 1px solid rgba(57, 181, 181, 0.35);
+    background-color: rgba(19, 30, 40, 0.82);
     border-radius: 18px;
     box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
     font-family: "JetBrainsMono Nerd Font", sans-serif;
@@ -12,24 +10,21 @@ window {
     font-weight: bold;
 }
 
-/* --- KOTAK PENCARIAN (glass, tanpa lubang gelap) --- */
 #input {
     margin: 18px 18px 10px 18px;
     padding: 12px 16px;
-    border: 1px solid rgba(134, 206, 203, 0.40);
+    border: 1px solid rgba(57, 181, 181, 0.40);
     border-radius: 12px;
     background-color: rgba(255, 255, 255, 0.06);
-    color: #eafffe;
+    color: #d8f0f0;
     box-shadow: none;
     outline: none;
 }
-#input image { color: #86cecb; }
+#input image { color: #39b5b5; }
 
-/* --- PEMBUNGKUS --- */
 #inner-box { margin: 0px 12px 14px 12px; background-color: transparent; }
 #outer-box, #scroll, #text { background-color: transparent; }
 
-/* --- ENTRY NORMAL (flat, tanpa border gelap) --- */
 #entry {
     padding: 10px 12px;
     margin: 3px 6px;
@@ -39,19 +34,18 @@ window {
     transition: all 0.15s ease;
 }
 #entry:hover {
-    background-color: rgba(134, 206, 203, 0.12);
-    border: 1px solid rgba(134, 206, 203, 0.20);
+    background-color: rgba(57, 181, 181, 0.12);
+    border: 1px solid rgba(57, 181, 181, 0.20);
 }
 #text {
     margin-left: 12px;
-    color: #cdd6df;
+    color: #b0d8d8;
 }
 
-/* --- ENTRY TERPILIH: gradient Miku pink -> teal + glow --- */
 #entry:selected {
-    background: linear-gradient(to right, rgba(225, 40, 133, 0.85), rgba(19, 122, 127, 0.85));
-    border: 1px solid rgba(134, 206, 203, 0.55);
-    box-shadow: 0 0 12px rgba(225, 40, 133, 0.45);
+    background: linear-gradient(to right, rgba(57, 181, 181, 0.85), rgba(45, 212, 192, 0.85));
+    border: 1px solid rgba(57, 181, 181, 0.55);
+    box-shadow: 0 0 12px rgba(57, 181, 181, 0.45);
 }
 #entry:selected #text {
     color: #ffffff;

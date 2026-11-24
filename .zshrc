@@ -20,11 +20,11 @@ precmd() { vcs_info }
 setopt PROMPT_SUBST
 export CONDA_CHANGEPS1=false
 
-# --- BANNER MIKU INLINE (UKURAN BESAR) ---
-export inline_miku=$(chafa -f sixel -s 45x3 ~/.config/ags/assets/mikunavcenter.png | tr -d '\n')
+# --- BANNER MIKU (sekali saat shell start, bukan di prompt) ---
+chafa -f sixel -s 20x3 --stretch ~/.config/ags/assets/mikunavcenter.png 2>/dev/null
 
-# --- PROMPT 2 BARIS (LOCKED & RAPI) ---
-PROMPT=$'\e[0m''%F{#39C5BB}◢◤ %{${inline_miku}%}'$'\n''%F{#FFFF00}%n@ubuntu %F{#FF007F}// %F{#FFFFFF}%~%F{#FF007F}${vcs_info_msg_0_} %F{#FF007F}❯%f '
+# --- PROMPT 2 BARIS (tanpa sixel = no spam saat resize) ---
+PROMPT=$'\e[0m''%F{#39C5BB}◢◤ '$'\n''%F{#FFFF00}%n@ubuntu %F{#FF007F}// %F{#FFFFFF}%~%F{#FF007F}${vcs_info_msg_0_} %F{#FF007F}❯%f '
 RPROMPT='%F{#E12885}[%F{#F1FF00}%T%F{#E12885}]%f'
 
 # ==========================================

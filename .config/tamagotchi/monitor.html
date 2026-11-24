@@ -261,7 +261,7 @@ function simulate(){
   const standbyMB = Math.round(TOTAL_MB * S.standby/100);
   const freeMB    = Math.max(0, TOTAL_MB - activeMB - standbyMB);
   return { ramPct:S.ram, cpuPct:S.cpu, diskPct:S.disk, swapPct:S.swap,
-           activeMB, standbyMB, freeMB, totalMB:TOTAL_MB };
+           activeMB, standbyMB, freeMB, totalMB:TOTAL_MB, tempC:Math.round(45+Math.random()*30) };
 }
 
 /* ======================================================================
@@ -428,6 +428,10 @@ function viewMem(){
   bar(5, ly+8,  W-10, 5, stats.cpuPct,  'CPU');
   bar(5, ly+16, W-10, 5, stats.diskPct, 'DSK');
   bar(5, ly+24, W-10, 5, stats.swapPct, 'SWP');
+  // thermometer: temp as % of 100°C max
+  const tc = stats.tempC||0;
+  bar(5, ly+32, W-10, 5, tc, 'TMP');
+  mini(W-10-miniW(tc+'C',1), ly+32, tc+'C', tc>=80?'#c33':INK, 1);
 }
 
 /* --- tampilan 2: PET --- */
@@ -440,6 +444,8 @@ function viewPet(){
   miniCenter(78, say, C_B, 2);
   bar(5, 94, W-10, 5, stats.ramPct, 'RAM');
   bar(5, 103, W-10, 5, stats.cpuPct, 'CPU');
+  const tc2 = stats.tempC||0;
+  bar(5, 112, W-10, 5, tc2, 'TMP');
   if(m==='sleep'){ mini(W-18, 28, 'Z', C_B, 1); mini(W-13, 20, 'Z', C_B, 2); }
 }
 

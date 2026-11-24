@@ -10,16 +10,19 @@ HOME = os.path.expanduser("~")
 # Disk cleaner: HANYA sampah yang regenerate sendiri. JANGAN masukkan path data user.
 # Yang dihapus: ISI folder-folder ini (foldernya tetap ada).
 SAFE_DIRS = [
-    "~/.cache/thumbnails",
+    "~/.cache",                 # SEMUA isi ~/.cache regenerable: thumbnails, browser, pip, shader, fontconfig, dll
     # Trash SENGAJA tidak di-auto-empty: bisa berisi file yang masih mau dibalikin
     # (pernah ikut kehapus permanen). Kosongkan Trash manual lewat file manager.
-    "~/.cache/google-chrome",
-    "~/.cache/chromium",
-    "~/.cache/mozilla",
-    "~/.cache/pip",
-    "~/.npm/_cacache",
-    "~/.cache/yarn",
-    "~/.bun/install/cache",
+    "~/.npm/_cacache",          # di luar ~/.cache
+    "~/.bun/install/cache",     # di luar ~/.cache
+    "~/.gradle/caches",         # gradle build cache, re-download otomatis
+    "~/.gradle/wrapper",        # gradle wrapper dists
+    "~/.pub-cache",             # flutter/dart packages, re-download otomatis
+    "~/.dartServer",            # dart analysis server cache
+    "~/.config/Code/Cache",
+    "~/.config/Code/CachedData",
+    "~/.config/VSCodium/Cache",
+    "~/.config/VSCodium/CachedData",
 ]
 
 
@@ -49,7 +52,24 @@ def drop_caches():
         "echo 3 | sudo -n tee /proc/sys/vm/drop_caches",
         shell=True, capture_output=True,
     )
+    # defrag page yang baru dibebasin -> blok free lebih besar (best-effort, dilewati kalau sudoers gak izinin)
+    subprocess.run("echo 1 | sudo -n tee /proc/sys/vm/compact_memory", shell=True, capture_output=True)
     return r.returncode == 0
+
+
+def cpu_temp():
+    """Read CPU temp from thermal zones (°C)."""
+    try:
+        for i in range(10):
+            tp = f"/sys/class/thermal/thermal_zone{i}/type"
+            tt = f"/sys/class/thermal/thermal_zone{i}/temp"
+            if os.path.exists(tp):
+                t = open(tp).read().strip()
+                if "x86_pkg" in t or "cpu" in t.lower() or i == 0:
+                    return round(int(open(tt).read().strip()) / 1000)
+    except Exception:
+        pass
+    return 0
 
 
 def disk_pct():
@@ -117,6 +137,7 @@ def stats():
         "standbyMB": round(cache / 1024),
         "freeMB": round(max(0, avail - cache) / 1024),
         "totalMB": round(total / 1024),
+        "tempC": cpu_temp(),
     }
 
 
