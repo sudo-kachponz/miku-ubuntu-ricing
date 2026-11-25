@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ -f "/home/firania/.nix-profile/etc/profile.d/nix.sh" ]; then
+    source "/home/firania/.nix-profile/etc/profile.d/nix.sh"
+fi
+export XDG_SESSION_TYPE=wayland
+export AQ_DRM_DEVICES="/dev/dri/card0:/dev/dri/card1"
+exec nixGL /home/firania/.local/bin/nixGLNvidia /home/firania/.nix-profile/bin/Hyprland

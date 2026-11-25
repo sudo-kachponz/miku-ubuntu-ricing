@@ -1,0 +1,140 @@
+/* swaync — pastel rainbow tamagotchi theme */
+
+/* notification popup */
+.notification-row {
+  outline: none;
+}
+
+.notification {
+  border-radius: 18px;
+  border: 2px solid transparent;
+  /* rainbow pastel gradient border (tamagotchi egg gradient) */
+  background:
+    linear-gradient(#FFF8F9, #FFF8F9) padding-box,
+    linear-gradient(135deg, #BFF0E2, #BEE3F6, #CFD6F6, #F3CFE8, #FBDFC6) border-box;
+  padding: 0;
+  margin: 8px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12), 0 1px 4px rgba(240, 160, 180, 0.3);
+  transition: all 200ms ease;
+}
+
+.notification:hover {
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(240, 160, 180, 0.4);
+}
+
+.notification-content {
+  padding: 14px 16px;
+}
+
+/* app name */
+.notification .summary {
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 13px;
+  font-weight: bold;
+  color: #2A2A35;
+}
+
+/* body text */
+.notification .body {
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 11px;
+  color: #4A4A55;
+}
+
+/* app icon */
+.notification .image {
+  margin-right: 12px;
+  border-radius: 10px;
+}
+
+/* action buttons */
+.notification .notification-action {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #E8F8F0, #F0E8F8);
+  color: #3A3A45;
+  border: 1px solid #E0D0E0;
+  margin: 4px;
+  padding: 6px 12px;
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 11px;
+}
+
+.notification .notification-action:hover {
+  background: linear-gradient(135deg, #D0F0E8, #E8D0F0);
+}
+
+/* close button */
+.close-button {
+  background: linear-gradient(135deg, #F3CFE8, #FBDFC6);
+  color: #5A5A65;
+  border-radius: 50%;
+  min-width: 24px;
+  min-height: 24px;
+  margin: 4px;
+  border: none;
+}
+
+.close-button:hover {
+  background: linear-gradient(135deg, #E85880, #F3CFE8);
+  color: white;
+}
+
+/* control center panel */
+.control-center {
+  background: rgba(255, 248, 249, 0.95);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-image: linear-gradient(135deg, #BFF0E2, #BEE3F6, #CFD6F6, #F3CFE8, #FBDFC6) 1;
+  margin: 10px;
+  padding: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* control center title */
+.widget-title {
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 14px;
+  font-weight: bold;
+  color: #2A2A35;
+  margin: 8px;
+}
+
+.widget-title button {
+  border-radius: 12px;
+  background: linear-gradient(135deg, #F3CFE8, #FBDFC6);
+  color: #3A3A45;
+  border: none;
+  padding: 6px 14px;
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 11px;
+}
+
+.widget-title button:hover {
+  background: linear-gradient(135deg, #E85880, #F3CFE8);
+  color: white;
+}
+
+/* DND toggle */
+.widget-dnd {
+  font-family: "JetBrainsMono Nerd Font";
+  font-size: 12px;
+  color: #4A4A55;
+  margin: 4px 8px;
+}
+
+.widget-dnd > switch {
+  border-radius: 12px;
+  background: #E8E0E8;
+}
+
+.widget-dnd > switch:checked {
+  background: linear-gradient(135deg, #E85880, #F3CFE8);
+}
+
+/* notification in control center */
+.control-center .notification {
+  background:
+    linear-gradient(#FFF8F9, #FFF8F9) padding-box,
+    linear-gradient(135deg, #BFF0E2, #BEE3F6, #CFD6F6, #F3CFE8, #FBDFC6) border-box;
+}

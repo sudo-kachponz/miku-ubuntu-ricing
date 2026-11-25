@@ -1,0 +1,10 @@
+/* --- AGS Styling — MIKU BREAKING TEAL THEME --- */
+
+.calendar-slider button {
+    image, .icon {
+        filter: drop-shadow(1px 0 0 #39b5b5)
+                drop-shadow(-1px 0 0 #39b5b5)
+                drop-shadow(0 1px 0 #39b5b5)
+                drop-shadow(0 -1px 0 #39b5b5);
+    }
+}
