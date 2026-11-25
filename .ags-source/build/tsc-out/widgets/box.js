@@ -1,0 +1,47 @@
+import { register } from './widget.js';
+import Gtk from 'gi://Gtk?version=3.0';
+export function newBox(...props) {
+    return new Box(...props);
+}
+export class Box extends Gtk.Box {
+    static {
+        register(this, {
+            properties: {
+                'vertical': ['boolean', 'rw'],
+                'children': ['jsobject', 'rw'],
+            },
+        });
+    }
+    constructor(propsOrChildren = {}, ...children) {
+        const props = Array.isArray(propsOrChildren) ? {} : propsOrChildren;
+        if (Array.isArray(propsOrChildren))
+            props.children = propsOrChildren;
+        else if (children.length > 0)
+            props.children = children;
+        super(props);
+        this.connect('notify::orientation', () => this.notify('vertical'));
+    }
+    get child() { return this.children[0]; }
+    set child(child) { this.children = [child]; }
+    get children() { return this.get_children(); }
+    set children(children) {
+        const newChildren = children || [];
+        this.get_children()
+            .filter(ch => !newChildren?.includes(ch))
+            .forEach(ch => ch.destroy());
+        // remove any children that weren't destroyed so
+        // we can re-add everything in the correct new order
+        this.get_children()
+            .forEach(ch => this.remove(ch));
+        if (!children)
+            return;
+        children.forEach(w => w && this.add(w));
+        this.notify('children');
+        this.show_all();
+    }
+    get vertical() { return this.orientation === Gtk.Orientation.VERTICAL; }
+    set vertical(v) {
+        this.orientation = Gtk.Orientation[v ? 'VERTICAL' : 'HORIZONTAL'];
+    }
+}
+export default Box;

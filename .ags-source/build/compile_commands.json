@@ -1,0 +1,74 @@
+[
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/meson-generated_.._gvc-enum-types.c.o -MF subprojects/gvc/libgvc.so.p/meson-generated_.._gvc-enum-types.c.o.d -o subprojects/gvc/libgvc.so.p/meson-generated_.._gvc-enum-types.c.o -c subprojects/gvc/gvc-enum-types.c",
+    "file": "subprojects/gvc/gvc-enum-types.c",
+    "output": "subprojects/gvc/libgvc.so.p/meson-generated_.._gvc-enum-types.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-channel-map.c.o -MF subprojects/gvc/libgvc.so.p/gvc-channel-map.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-channel-map.c.o -c ../subprojects/gvc/gvc-channel-map.c",
+    "file": "../subprojects/gvc/gvc-channel-map.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-channel-map.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-card.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-card.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-card.c.o -c ../subprojects/gvc/gvc-mixer-card.c",
+    "file": "../subprojects/gvc/gvc-mixer-card.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-card.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-control.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-control.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-control.c.o -c ../subprojects/gvc/gvc-mixer-control.c",
+    "file": "../subprojects/gvc/gvc-mixer-control.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-control.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-event-role.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-event-role.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-event-role.c.o -c ../subprojects/gvc/gvc-mixer-event-role.c",
+    "file": "../subprojects/gvc/gvc-mixer-event-role.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-event-role.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-sink.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-sink.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-sink.c.o -c ../subprojects/gvc/gvc-mixer-sink.c",
+    "file": "../subprojects/gvc/gvc-mixer-sink.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-sink.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-sink-input.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-sink-input.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-sink-input.c.o -c ../subprojects/gvc/gvc-mixer-sink-input.c",
+    "file": "../subprojects/gvc/gvc-mixer-sink-input.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-sink-input.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-source.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-source.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-source.c.o -c ../subprojects/gvc/gvc-mixer-source.c",
+    "file": "../subprojects/gvc/gvc-mixer-source.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-source.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-source-output.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-source-output.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-source-output.c.o -c ../subprojects/gvc/gvc-mixer-source-output.c",
+    "file": "../subprojects/gvc/gvc-mixer-source-output.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-source-output.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-stream.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-stream.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-stream.c.o -c ../subprojects/gvc/gvc-mixer-stream.c",
+    "file": "../subprojects/gvc/gvc-mixer-stream.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-stream.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gvc/libgvc.so.p -Isubprojects/gvc -I../subprojects/gvc -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -D_REENTRANT -pthread '-DG_LOG_DOMAIN=\"Gvc\"' -DWITH_INTROSPECTION -MD -MQ subprojects/gvc/libgvc.so.p/gvc-mixer-ui-device.c.o -MF subprojects/gvc/libgvc.so.p/gvc-mixer-ui-device.c.o.d -o subprojects/gvc/libgvc.so.p/gvc-mixer-ui-device.c.o -c ../subprojects/gvc/gvc-mixer-ui-device.c",
+    "file": "../subprojects/gvc/gvc-mixer-ui-device.c",
+    "output": "subprojects/gvc/libgvc.so.p/gvc-mixer-ui-device.c.o"
+  },
+  {
+    "directory": "/home/firania/.ags-source/build",
+    "command": "cc -Isubprojects/gutils/libgutils.so.p -Isubprojects/gutils -I../subprojects/gutils -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmount -I/usr/include/blkid -I/usr/include/security -fdiagnostics-color=always -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -Wextra -O0 -g -fPIC -pthread -MD -MQ subprojects/gutils/libgutils.so.p/pam.c.o -MF subprojects/gutils/libgutils.so.p/pam.c.o.d -o subprojects/gutils/libgutils.so.p/pam.c.o -c ../subprojects/gutils/pam.c",
+    "file": "../subprojects/gutils/pam.c",
+    "output": "subprojects/gutils/libgutils.so.p/pam.c.o"
+  }
+]

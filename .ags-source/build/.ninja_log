@@ -1,0 +1,24 @@
+# ninja log v5
+3	331	1779244566473200581	subprojects/gvc/gvc-enum-types.c	d0d1970694dae589
+4	335	1779244566478200738	subprojects/gvc/gvc-enum-types.h	648b99e9d9cb6a6c
+6	380	1779244566544202807	subprojects/gutils/libgutils.so.p/pam.c.o	44353e2e2f204ab9
+381	458	1779244566622205253	subprojects/gutils/libgutils.so	a6eaf3df9d9c9c1e
+335	681	1779244566845212245	subprojects/gvc/libgvc.so.p/meson-generated_.._gvc-enum-types.c.o	6bef7299735721f1
+336	704	1779244566869212998	subprojects/gvc/libgvc.so.p/gvc-channel-map.c.o	4921cabd6cab07ce
+340	750	1779244566914214409	subprojects/gvc/libgvc.so.p/gvc-mixer-sink-input.c.o	de1fabd630f3d9ca
+340	797	1779244566961215882	subprojects/gvc/libgvc.so.p/gvc-mixer-source.c.o	25f879a6ae7f51a6
+342	813	1779244566977216384	subprojects/gvc/libgvc.so.p/gvc-mixer-ui-device.c.o	39777c87efe5221c
+337	816	1779244566980216478	subprojects/gvc/libgvc.so.p/gvc-mixer-card.c.o	68a4054f68314d50
+341	842	1779244567006217293	subprojects/gvc/libgvc.so.p/gvc-mixer-source-output.c.o	755a03ad7bc19317
+339	846	1779244567010217418	subprojects/gvc/libgvc.so.p/gvc-mixer-sink.c.o	3ce7f829654fec0e
+338	914	1779244567078219543	subprojects/gvc/libgvc.so.p/gvc-mixer-event-role.c.o	812b944f75f09df2
+341	1020	1779244567184222857	subprojects/gvc/libgvc.so.p/gvc-mixer-stream.c.o	d9ae4ab4302bee61
+337	1359	1779244567523233454	subprojects/gvc/libgvc.so.p/gvc-mixer-control.c.o	90e92077e5144b0b
+1360	1450	1779244567614236298	subprojects/gvc/libgvc.so	7b2c850f0d64558c
+458	1876	1779244567976247614	subprojects/gutils/GUtils-1.0.gir	9caffc7ec4533ef4
+1877	2412	1779244568576266314	subprojects/gutils/GUtils-1.0.typelib	b11a733f4586b6be
+1450	3094	1779244569165284654	subprojects/gvc/Gvc-1.0.gir	18dbc0af6388177
+3094	3645	1779244569808304632	subprojects/gvc/Gvc-1.0.typelib	d089003e92c235
+5	25060	1779244552720760234	src/tsc-output	f77fc84af2676578
+25060	25074	1779245111513029697	src/com.github.Aylur.ags.src.gresource	99e0c653cc4bf7be
+25074	56049	0	meson-internal__install	9bd7faa9472bf40f

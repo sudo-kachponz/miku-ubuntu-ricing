@@ -1,0 +1,1 @@
+{"version": "1.9.0", "descriptive_name": "ags", "subproject_dir": "subprojects", "subprojects": [{"name": "gvc", "version": "undefined", "descriptive_name": "gvc"}, {"name": "gutils", "version": "undefined", "descriptive_name": "pam"}]}

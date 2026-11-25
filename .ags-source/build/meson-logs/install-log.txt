@@ -1,0 +1,12 @@
+# List of files installed by Meson
+# Does not contain files installed by custom scripts.
+/usr/lib/x86_64-linux-gnu/libgvc.so
+/usr/share/com.github.Aylur.ags/Gvc-1.0.gir
+/usr/lib/x86_64-linux-gnu/Gvc-1.0.typelib
+/usr/lib/x86_64-linux-gnu/libgutils.so
+/usr/share/com.github.Aylur.ags/GUtils-1.0.gir
+/usr/lib/x86_64-linux-gnu/GUtils-1.0.typelib
+/usr/share/com.github.Aylur.ags/com.github.Aylur.ags.src.gresource
+/etc/pam.d/ags
+/usr/share/com.github.Aylur.ags/com.github.Aylur.ags
+/usr/share/com.github.Aylur.ags
